@@ -4,11 +4,12 @@ import {promisify} from 'util';
 import * as moment from 'moment';
 
 import {exec as execAsync} from 'child_process';
-import {Client, PermissionResolvable, WSEventType} from 'discord.js';
+import {Client, GuildMember, MessageOptions, PermissionResolvable, WSEventType} from 'discord.js';
 import {ApplicationCommandOptionType} from '../application-command';
 
 const exec = promisify(execAsync);
 
+//TODO: should be a DM command and not interaction
 export class BotControlCommand extends Command {
 
     interaction = {
@@ -46,41 +47,52 @@ export class BotControlCommand extends Command {
         });
     }
 
-    async execute(options: CommandOptions): Promise<CommandResponse | void> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse | void> {
+        let response: MessageOptions | void;
         if (options.status) {
-            return this.status();
+            response = await this.status(author);
         } else if (options.update) {
-            return this.update();
+            response = await this.update();
         } else if (options.kill) {
-            return this.kill();
+            response = await this.kill();
+        }
+
+        if(response) {
+            const dm = await author.createDM();
+            await dm.send(response);
         }
     }
 
-    private async status(): Promise<CommandResponse> {
+    private async status(author: GuildMember): Promise<MessageOptions> {
         let changes;
         try {
-            changes = await exec('git log -3 --pretty="%cr by %cn: %B"');
+            changes = (await exec('git log -3 --pretty="%cr by %cn: %B"')).stdout;
         } catch (e) {
             this.log.warn('git log failed', e);
         }
 
         return {
-            embeds: [{
-                title: '🤖  Bot Stats',
+            embed: {
+                title: 'Bot Stats',
                 fields: [
                     {
-                        name: 'Started',
+                        name: '⏲️  Uptime',
                         value: moment().subtract(process.uptime(), 'seconds').fromNow(),
                         inline: false,
                     },
                     {
-                        name: '📤  Outgoing',
+                        name: '📤  Messages sent',
                         value: this.sentMessages,
                         inline: true,
                     },
                     {
-                        name: '📥  Incoming',
+                        name: '📥  Messages received',
                         value: this.receivedMessages,
+                        inline: true,
+                    },
+                    {
+                        name: '🏘️  Servers',
+                        value: author.client.guilds.cache.size,
                         inline: true,
                     },
                     {
@@ -89,16 +101,16 @@ export class BotControlCommand extends Command {
                         inline: true,
                     },
                     {
-                        name: '💻  Changes',
+                        name: '📑  Changes',
                         value: changes || '-',
                         inline: false,
                     },
                 ],
-            }]
+            }
         };
     }
 
-    private async update(): Promise<CommandResponse> {
+    private async update(): Promise<MessageOptions> {
         let result;
         try {
             result = await exec('git reset --hard && git pull && npm update');
@@ -109,10 +121,10 @@ export class BotControlCommand extends Command {
 
         this.log.info('Executed git pull.', result);
         return {
-            embeds: [{
+            embed: {
                 title: '🤖 GIT Pull',
                 description: result,
-            }],
+            },
         };
     }
 
