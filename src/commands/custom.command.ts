@@ -63,16 +63,16 @@ export class CustomCommand extends Command {
 
     private readonly log = log4js.getLogger(CustomCommand.name);
 
-    async execute(options, author): Promise<CommandResponse | string> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse | string> {
         if (options.add) {
-            return this.add(options.add, author);
+            return this.add(options.add as CommandOptions, author);
         } else if (options.delete) {
-            return this.delete(options.delete, author);
+            return this.delete(options.delete as CommandOptions, author);
         }
     }
 
     private async add(options: CommandOptions, author: GuildMember): Promise<string> {
-        let command: ApplicationCommand = await this.createGuildCommand(author.client, author.guild.id, {
+        const command: ApplicationCommand = await this.createGuildCommand(author.client, author.guild.id, {
             name: options.name as string,
             description: options.description as string,
             options: this.getCommandOptions(options.text as string)
@@ -83,7 +83,7 @@ export class CustomCommand extends Command {
             attachment = await this.getDatabase(author).downloadFile(options.attachment as string);
         }
 
-        let data = await this.getDatabase(author).readData();
+        const data = await this.getDatabase(author).readData();
         data[command.name] = {
             id: command.id,
             text: options.text,
@@ -98,7 +98,7 @@ export class CustomCommand extends Command {
     }
 
     private getCommandOptions(text: string) {
-        let commandOptions: ApplicationCommandOption[] = [];
+        const commandOptions: ApplicationCommandOption[] = [];
 
         if (text) {
             if (text.includes(USER))
@@ -128,10 +128,10 @@ export class CustomCommand extends Command {
     }
 
     private async delete(options: CommandOptions, author: GuildMember): Promise<string> {
-        let data = await this.getDatabase(author).readData();
+        const data = await this.getDatabase(author).readData();
 
-        let name = options.name as string;
-        let command = data[name];
+        const name = options.name as string;
+        const command = data[name];
         if (!command) return;
 
         delete data[name];
@@ -144,8 +144,8 @@ export class CustomCommand extends Command {
     }
 
     async executeCommand(name: string, options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
-        let data = await this.getDatabase(author).readData();
-        let command = data[name];
+        const data = await this.getDatabase(author).readData();
+        const command = data[name];
         if (!command) return;
 
         return {
@@ -172,10 +172,12 @@ export class CustomCommand extends Command {
     }
 
     async createGuildCommand(client: Client, guild: string, config: ApplicationCommand): Promise<ApplicationCommand> {
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (client as any).api.applications(client.user.id).guilds(guild).commands.post({data: config});
     }
 
     async deleteGuildCommand(client: Client, guild: string, id: string): Promise<Buffer> {
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (client as any).api.applications(client.user.id).guilds(guild).commands(id).delete();
     }
 

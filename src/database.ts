@@ -16,29 +16,29 @@ export class Database {
 
     private static DATABASES: { [guild: string]: Database; } = {};
 
-    static get(command: typeof Command, guild: string) {
+    static get(command: typeof Command, guild: string): Database {
         let database = Database.DATABASES[guild];
         if(!database) {
-            let dir = path.join(DB_DIR, guild);
-            let databaseFile = path.join(dir, `${command.name}.json`);
-            let downloadDir = path.join(dir, command.name);
+            const dir = path.join(DB_DIR, guild);
+            const databaseFile = path.join(dir, `${command.name}.json`);
+            const downloadDir = path.join(dir, command.name);
             database = Database.DATABASES[guild] = new Database(databaseFile, downloadDir);
         }
         return database;
     }
 
-    private cache: any;
+    private cache: DatabaseData;
 
     private constructor(
         private databaseFile: string,
         private downloadDir: string
     ) {}
 
-    async readData() {
+    async readData(): Promise<DatabaseData> {
         if (!this.cache) {
             try {
                 //read data from disc and store it in DB
-                let data = await fs.readFile(this.databaseFile, 'utf8');
+                const data = await fs.readFile(this.databaseFile, 'utf8');
                 this.cache = JSON.parse(data);
             } catch (e) {
                 log.warn(`Couldn't read ${this.databaseFile}: ${e.message}`);
@@ -49,7 +49,7 @@ export class Database {
         return this.cache;
     }
 
-    async writeData(data: any) {
+    async writeData(data: DatabaseData): Promise<void> {
         await fs.mkdir(path.dirname(this.databaseFile), {recursive: true});
 
         //write file to disc and update database cache
@@ -57,13 +57,13 @@ export class Database {
         this.cache = data;
     }
 
-    async downloadFile(url: string) {
+    async downloadFile(url: string): Promise<string> {
         await fs.mkdir(this.downloadDir, {recursive: true});
 
-        let name = Math.random().toString().substr(2);
-        let dest = path.join(this.downloadDir, name + path.extname(url));
+        const name = Math.random().toString().substr(2);
+        const dest = path.join(this.downloadDir, name + path.extname(url));
 
-        let response = await fetch(url);
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`unexpected response ${response.statusText}`);
 
         await pipeline(response.body, createWriteStream(dest));
@@ -71,3 +71,6 @@ export class Database {
     }
 
 }
+
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DatabaseData = any;

@@ -4,25 +4,34 @@ import {
     FileOptions,
     GuildMember,
     MessageAttachment,
-    MessageEmbed,
+    MessageEmbedOptions,
     PermissionResolvable,
     TextChannel
 } from 'discord.js';
 import {ApplicationCommand} from './application-command';
 import {Stream} from 'stream';
 
+
 export abstract class Command {
     interaction?: ApplicationCommand;
     permission: PermissionResolvable = 'SEND_MESSAGES';
 
-    async init(client: Client): Promise<void> {}
-    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse | string | void> {}
-}
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async init(client: Client): Promise<void> {
+        //override to perform some init
+    }
 
-export type CommandOptions = { [name: string]: string | number | boolean | CommandOptions; }
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse | string | void> {
+        //override to perform interaction
+    }
+}
 
 export interface CommandResponse {
     content?: string;
-    embeds?: (MessageEmbed | object)[];
+    embeds?: MessageEmbedOptions[];
     files?: (FileOptions | BufferResolvable | Stream | MessageAttachment)[];
 }
+
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CommandOptions = { [name: string]: any; }

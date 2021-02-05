@@ -1,10 +1,10 @@
-import {Command, CommandResponse} from '../command';
+import {Command, CommandOptions, CommandResponse} from '../command';
 import * as log4js from 'log4js';
 import {promisify} from 'util';
 import * as moment from 'moment';
 
 import {exec as execAsync} from 'child_process';
-import {PermissionResolvable, WSEventType} from 'discord.js';
+import {Client, PermissionResolvable, WSEventType} from 'discord.js';
 import {ApplicationCommandOptionType} from '../application-command';
 
 const exec = promisify(execAsync);
@@ -36,17 +36,17 @@ export class BotControlCommand extends Command {
     private receivedMessages = 0;
     private sentMessages = 0;
 
-    async init(client) {
+    async init(client: Client): Promise<void> {
         client.on('message', message => {
             if (message.author.id === client.user.id)
                 this.sentMessages++;
         });
-        client.ws.on('INTERACTION_CREATE' as WSEventType, interaction => {
+        client.ws.on('INTERACTION_CREATE' as WSEventType, () => {
             this.receivedMessages++;
         });
     }
 
-    async execute(options): Promise<CommandResponse> {
+    async execute(options: CommandOptions): Promise<CommandResponse | void> {
         if (options.status) {
             return this.status();
         } else if (options.update) {
@@ -116,7 +116,7 @@ export class BotControlCommand extends Command {
         };
     }
 
-    private async kill(): Promise<CommandResponse> {
+    private async kill(): Promise<void> {
         this.log.info('Killing process');
         process.exit();
     }

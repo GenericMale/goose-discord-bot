@@ -1,5 +1,5 @@
 import {ApplicationCommandOptionType} from '../application-command';
-import {Command, CommandResponse} from '../command';
+import {Command, CommandOptions, CommandResponse} from '../command';
 import fetch from 'node-fetch';
 import * as svg2png from 'svg2png';
 import {GuildMember} from 'discord.js';
@@ -46,7 +46,7 @@ export class BigCommand extends Command {
         ]
     };
 
-    async execute(options, author): Promise<CommandResponse> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         if (options.user) {
             return this.executeUser(author, options.user.user);
         } else if (options.emoji) {
@@ -84,7 +84,7 @@ export class BigCommand extends Command {
         }
 
         const builtInMatch = BUILTIN_EMOJI_REGEX.exec(emoji);
-        if(builtInMatch) {
+        if (builtInMatch) {
             const builtIn = builtInMatch[0].codePointAt(0).toString(16);
             const response = await fetch(`https://raw.githubusercontent.com/twitter/twemoji/gh-pages/v/13.0.1/svg/${builtIn}.svg`);
             const body = await response.buffer();

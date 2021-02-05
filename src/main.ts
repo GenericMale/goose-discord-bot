@@ -122,27 +122,32 @@ function parseInteractionDataOption(options?: ApplicationCommandInteractionDataO
     return map;
 }
 
-async function createGlobalCommand(config: ApplicationCommand): Promise<ApplicationCommand> {
-    return (client as any).api.applications(client.user.id).commands.post({data: config});
-}
-
-async function getGlobalCommands(): Promise<ApplicationCommand[]> {
-    return (client as any).api.applications(client.user.id).commands.get();
-}
-
-async function deleteGlobalCommand(id: string): Promise<Buffer> {
-    return (client as any).api.applications(client.user.id).commands(id).delete();
-}
-
-async function sendResponse(interaction: Interaction, type: InteractionResponseType): Promise<Buffer> {
-    return (client as any).api.interactions(interaction.id, interaction.token).callback.post({data: {type}});
-}
 
 async function sendFollowup(interaction: Interaction, data?: CommandResponse | string): Promise<Message> {
-    let webhook = new WebhookClient(client.user.id, interaction.token);
+    const webhook = new WebhookClient(client.user.id, interaction.token);
     if(typeof data === 'string') {
         return webhook.send(data);
     } else {
         return webhook.send(data.content, {files: data.files, embeds: data.embeds});
     }
+}
+
+async function createGlobalCommand(config: ApplicationCommand): Promise<ApplicationCommand> {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (client as any).api.applications(client.user.id).commands.post({data: config});
+}
+
+async function getGlobalCommands(): Promise<ApplicationCommand[]> {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (client as any).api.applications(client.user.id).commands.get();
+}
+
+async function deleteGlobalCommand(id: string): Promise<Buffer> {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (client as any).api.applications(client.user.id).commands(id).delete();
+}
+
+async function sendResponse(interaction: Interaction, type: InteractionResponseType): Promise<Buffer> {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (client as any).api.interactions(interaction.id, interaction.token).callback.post({data: {type}});
 }
