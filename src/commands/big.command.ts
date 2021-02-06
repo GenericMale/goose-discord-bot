@@ -59,9 +59,7 @@ export class BigCommand extends Command {
         const member = await author.guild.members.fetch(userId);
         const avatar = member.user.displayAvatarURL().replace(/\?size=.*/, '');
         return {
-            author: {
-                name: member.displayName
-            },
+            title: member.displayName,
             image: {
                 url: avatar,
             }

@@ -14,8 +14,6 @@ import {
 import {Command, CommandOptions} from './command';
 import {ApplicationCommand} from './application-command';
 
-const ERROR_ICON = 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-256.png';
-
 dotenv.config();
 log4js.configure({
     appenders: {
@@ -108,10 +106,7 @@ async function onInteraction(interaction: Interaction) {
             const dm = await member.createDM();
             await dm.send({
                 embed: {
-                    author: {
-                        name: e.message,
-                        iconURL: ERROR_ICON
-                    },
+                    title: `⚠️ ${e.message}`,
                     description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
                     footer: {
                         iconURL: guild.iconURL(),

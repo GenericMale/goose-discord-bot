@@ -42,7 +42,7 @@ export class StatusCommand extends Command {
             title: 'Bot Stats',
             fields: [
                 {
-                    name: '⏲️  Uptime',
+                    name: '⏲️  Started',
                     value: moment().subtract(process.uptime(), 'seconds').fromNow(),
                     inline: false,
                 },
