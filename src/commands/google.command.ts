@@ -36,7 +36,13 @@ export class GoogleCommand extends Command {
 
     async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
         const response = await fetch(URL + new URLSearchParams({
-            q: options.term, safe: channel.nsfw ? 'images' : 'active'
+            q: options.term,
+            safe: channel.nsfw ? 'images' : 'active',
+            num: '1',
+            ie: 'utf-8',
+            oe: 'utf-8',
+            hl: 'en-US',
+            lr: 'lang_en'
         }).toString());
         if (!response.ok) return;
 
