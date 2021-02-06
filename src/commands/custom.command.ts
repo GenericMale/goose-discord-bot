@@ -44,9 +44,9 @@ export class CustomCommand extends Command {
                         description: 'URL to a file (e.g. image) which should be attached to the message.'
                     },
                     {
-                        type: ApplicationCommandOptionType.BOOLEAN,
+                        type: ApplicationCommandOptionType.CHANNEL,
                         name: 'channel',
-                        description: 'Restrict command to current channel.'
+                        description: 'Restrict where the command can be used.'
                     },
                     {
                         type: ApplicationCommandOptionType.ROLE,
@@ -99,14 +99,14 @@ export class CustomCommand extends Command {
             text: options.text,
             attachment: attachment,
             role: options.role,
-            channel: options.channel ? channel.id : undefined,
+            channel: options.channel,
             user: author.user.tag,
             added: new Date().toISOString(),
         };
         await this.getDatabase(author).writeData(data);
 
         this.log.info(`New custom command ${options.name} by ${author.user.tag}, total: ${data.length}`);
-        return {description: `New guild command "${options.name}" added by ${author.user.toString()}!`};
+        return {description: `New guild command "${options.name}" added!`};
     }
 
     private getCommandOptions(text: string) {
@@ -152,7 +152,7 @@ export class CustomCommand extends Command {
         await this.deleteGuildCommand(author.client, author.guild.id, command.id);
 
         this.log.info(`Custom command ${options.name} deleted by ${author.user.tag}, total: ${data.length}`);
-        return {description: `Guild command "${options.name}" removed by ${author.user.toString()}!`};
+        return {description: `Guild command "${options.name}" removed!`};
     }
 
     async executeCommand(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
@@ -160,8 +160,8 @@ export class CustomCommand extends Command {
         const command = data[name];
         if (!command) return;
 
-        if (data.channel && channel.id !== data.channel) return;
-        if (data.role && !author.roles.cache.some(r => r.id === data.role)) return;
+        if (command.channel && channel.id !== command.channel) return;
+        if (command.role && !author.roles.cache.some(r => r.id === command.role)) return;
 
         const response: MessageEmbedOptions = {
             description: this.getText(options, command.text, author)
