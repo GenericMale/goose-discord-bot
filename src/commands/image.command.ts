@@ -4,7 +4,6 @@ import {GuildMember, MessageEmbedOptions, PermissionResolvable, TextChannel} fro
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 import * as cheerio from 'cheerio';
-import * as querystring from 'querystring';
 
 const URL = 'https://google.com/search?';
 const ICON = 'https://cdn4.iconfinder.com/data/icons/socialcones/508/Google-256.png';
@@ -14,16 +13,14 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:54.0) Gecko/20100101
 // After googling & inspecting element I found that div.g is the div for each
 // search result item, and h3.r a was the link for that item.
 // This means if the class name changes this command will break
-const RESULT_SELECTOR = 'div.xpd';
-const RESULT_LINK_SELECTOR = 'a';
-const TITLE_SELECTOR = 'div.vvjwJb,div.deIvCb';
-const DESCRIPTION_SELECTOR = 'div.s3v9rd';
+const RESULT_SELECTOR = 'div.isv-r';
+const RESULT_LINK_SELECTOR = 'a.VFACy,a.kGQAp';
 
-export class GoogleCommand extends Command {
+export class ImageCommand extends Command {
 
     interaction = {
-        name: 'google',
-        description: 'Search on Google',
+        name: 'image',
+        description: 'Search Image on Google',
         options: [
             {
                 type: ApplicationCommandOptionType.STRING,
@@ -39,7 +36,7 @@ export class GoogleCommand extends Command {
         const response = await fetch(URL + new URLSearchParams({
             q: options.term,
             safe: channel.nsfw ? 'images' : 'active',
-            num: '1',
+            tbm: 'isch',
             ie: 'utf-8',
             oe: 'utf-8',
             hl: 'en-US',
@@ -49,31 +46,34 @@ export class GoogleCommand extends Command {
         });
 
         if (!response.ok)
-            throw new Error(`Google search failed: ${response.statusText}`)
+            throw new Error(`Google image search failed: ${response.statusText}`);
 
         const body = await response.text();
         const $ = cheerio.load(body);
 
-        const searchResults = $(RESULT_SELECTOR);
-        for (let i = 0; i < searchResults.length; i++) {
-            const searchResult = $(searchResults[i]);
-            const link = searchResult.find(RESULT_LINK_SELECTOR);
+        const results = $(RESULT_SELECTOR);
+        if (results.length > 0) {
+            const searchResult = results.first();
+            const id = searchResult.attr('data-id');
 
-            const href = querystring.parse(link.attr('href'))['/url?q'];
-            if (href) {
-                const title = searchResult.find(TITLE_SELECTOR);
-                const description = searchResult.find(DESCRIPTION_SELECTOR);
-                return {
-                    author: {
-                        name: `Google Search: ${options.term}`,
-                        iconURL: ICON
-                    },
-                    title: $(title).text(),
-                    description: $(description).text().substring(0, 2048),
-                    url: href as string,
-                };
-            }
+            const parts = body.split(id);
+            const data = parts[parts.length - 2].split('"http')[2];
+
+            const image = decodeURIComponent(JSON.parse(`"http${data.substring(0, data.indexOf('"'))}"`));
+            const link = searchResult.find(RESULT_LINK_SELECTOR);
+            return {
+                author: {
+                    name: `Google Image Search: ${options.term}`,
+                    iconURL: ICON
+                },
+                title: $(link).attr('title'),
+                url: link.attr('href'),
+                image: {
+                    url: image
+                }
+            };
         }
-        throw new Error('Google search failed!');
+
+        throw new Error('Google image search failed!');
     }
 }
