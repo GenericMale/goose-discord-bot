@@ -69,19 +69,22 @@ export class CustomCommand extends Command {
             }
         ]
     };
-    permission: PermissionResolvable = 'ADMINISTRATOR';
+    permission: PermissionResolvable = 'MANAGE_GUILD';
 
     private readonly log = log4js.getLogger(CustomCommand.name);
 
-    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
         if (options.add) {
-            return this.add(options.add as CommandOptions, author, channel);
+            return this.add(options.add as CommandOptions, author);
         } else if (options.delete) {
             return this.delete(options.delete as CommandOptions, author);
         }
     }
 
-    private async add(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
+    private async add(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
+        if(!options.text && !options.attachment)
+            throw new Error('Either a text or an attachment has to be defined for the command.');
+
         const command: ApplicationCommand = await this.createGuildCommand(author.client, author.guild.id, {
             name: options.name as string,
             description: options.description as string,
@@ -144,7 +147,7 @@ export class CustomCommand extends Command {
 
         const name = options.name as string;
         const command = data[name];
-        if (!command) return;
+        if (!command) throw new Error('Custom Command not found!');
 
         delete data[name];
 
@@ -160,8 +163,15 @@ export class CustomCommand extends Command {
         const command = data[name];
         if (!command) return;
 
-        if (command.channel && channel.id !== command.channel) return;
-        if (command.role && !author.roles.cache.some(r => r.id === command.role)) return;
+        if (command.channel && channel.id !== command.channel) {
+            const commandChannel = await author.client.channels.fetch(command.channel) as TextChannel;
+            throw new Error(`Command can only be executed in #${commandChannel.name}!`);
+        }
+
+        if (command.role && !author.roles.cache.some(r => r.id === command.role)) {
+            const commandRole = await author.guild.roles.fetch(command.role);
+            throw new Error(`Command can only be executed by users with the ${commandRole.name} role!`);
+        }
 
         const response: MessageEmbedOptions = {
             description: this.getText(options, command.text, author)

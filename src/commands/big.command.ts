@@ -95,5 +95,6 @@ export class BigCommand extends Command {
             };
         }
 
+        throw new Error('Invalid Emoji!');
     }
 }

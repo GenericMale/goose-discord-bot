@@ -44,7 +44,9 @@ export class GoogleCommand extends Command {
             hl: 'en-US',
             lr: 'lang_en'
         }).toString());
-        if (!response.ok) return;
+
+        if (!response.ok)
+            throw new Error(`Google search failed: ${response.statusText}`)
 
         //Make cheerio just like JQuery
         const $ = cheerio.load(await response.text());
@@ -69,5 +71,6 @@ export class GoogleCommand extends Command {
                 };
             }
         }
+        throw new Error('Google search failed!');
     }
 }

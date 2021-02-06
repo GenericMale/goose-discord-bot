@@ -25,10 +25,13 @@ export class UrbanCommand extends Command {
 
     async execute(options: CommandOptions): Promise<MessageEmbedOptions> {
         const response = await fetch(API_URL + new URLSearchParams({term: options.term}).toString());
-        if (!response.ok) return;
+
+        if (!response.ok)
+            throw new Error(`Urban Dictionary search failed: ${response.statusText}`)
 
         const results = (await response.json()) as UrbanResult;
-        if (!results || !results.list || !results.list[0]) return;
+        if (!results || !results.list || !results.list[0])
+            throw new Error('There are no definitions for this word.')
 
         const result = results.list.sort((a, b) =>
             (b.thumbs_up - b.thumbs_down) - (a.thumbs_up - a.thumbs_down)

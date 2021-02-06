@@ -14,6 +14,8 @@ import {
 import {Command, CommandOptions} from './command';
 import {ApplicationCommand} from './application-command';
 
+const ERROR_ICON = 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-256.png';
+
 dotenv.config();
 log4js.configure({
     appenders: {
@@ -81,25 +83,42 @@ async function onInteraction(interaction: Interaction) {
         const permissions = channel.permissionsFor(member);
 
         const command = commands[interaction.data.name];
-        if (command) {
-            if (command.permission && !permissions.has(command.permission)) {
-                return;
-            }
+        try {
+            if (command) {
+                if (command.permission && !permissions.has(command.permission)) {
+                    return;
+                }
 
-            const response = await command.execute(options, member, channel);
-            if (response) {
-                return sendFollowup(interaction, member, response);
-            }
-        } else {
-            if (!permissions.has('SEND_MESSAGES')) {
-                return;
-            }
+                const response = await command.execute(options, member, channel);
+                if (response) {
+                    return sendFollowup(interaction, member, response);
+                }
+            } else {
+                if (!permissions.has('SEND_MESSAGES')) {
+                    return;
+                }
 
-            const command = commands['custom'] as CustomCommand;
-            const response = await command.executeCommand(interaction.data.name, options, member, channel);
-            if (response) {
-                return sendFollowup(interaction, member, response);
+                const command = commands['custom'] as CustomCommand;
+                const response = await command.executeCommand(interaction.data.name, options, member, channel);
+                if (response) {
+                    return sendFollowup(interaction, member, response);
+                }
             }
+        } catch(e) {
+            const dm = await member.createDM();
+            await dm.send({
+                embed: {
+                    author: {
+                        name: e.message,
+                        iconURL: ERROR_ICON
+                    },
+                    description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
+                    footer: {
+                        iconURL: guild.iconURL(),
+                        text: `${guild.name} #${channel.name}`
+                    }
+                }
+            });
         }
     } else {
         return sendResponse(interaction, InteractionResponseType.Pong);
@@ -120,6 +139,17 @@ function parseInteractionDataOption(options?: ApplicationCommandInteractionDataO
         });
     }
     return map;
+}
+
+function reconstructCommand(options?: ApplicationCommandInteractionDataOption[]) {
+    let command = '';
+    if(options) {
+        options.forEach(o => {
+            command += ` ${o.name}`;
+            command += o.value ? `:${o.value}` : reconstructCommand(o.options);
+        });
+    }
+    return command;
 }
 
 
