@@ -14,15 +14,16 @@ const DB_DIR = '.data';
 
 export class Database {
 
-    private static DATABASES: { [guild: string]: Database; } = {};
+    private static DATABASES: { [guild: string]: { [database: string]: Database; }; } = {};
 
     static get(command: typeof Command, guild: string): Database {
-        let database = Database.DATABASES[guild];
+        let database = Database.DATABASES[guild] ? Database.DATABASES[guild][command.name] : null;
         if(!database) {
             const dir = path.join(DB_DIR, guild);
             const databaseFile = path.join(dir, `${command.name}.json`);
             const downloadDir = path.join(dir, command.name);
-            database = Database.DATABASES[guild] = new Database(databaseFile, downloadDir);
+            Database.DATABASES[guild] = Database.DATABASES[guild] || {};
+            database = Database.DATABASES[guild][command.name] = new Database(databaseFile, downloadDir);
         }
         return database;
     }

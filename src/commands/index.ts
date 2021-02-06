@@ -5,3 +5,4 @@ export * from './delete.command';
 export * from './urban.command';
 export * from './google.command';
 export * from './poll.command';
+export * from './role.command';

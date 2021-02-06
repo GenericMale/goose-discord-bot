@@ -4,7 +4,7 @@ import * as log4js from 'log4js';
 import {Client, GuildMember, Message, MessageEmbedOptions, TextChannel, WebhookClient, WSEventType} from 'discord.js';
 
 import * as commandClasses from './commands';
-import {CustomCommand} from './commands';
+import {CustomCommand, RoleCommand} from './commands';
 import {
     ApplicationCommandInteractionDataOption,
     Interaction,
@@ -71,52 +71,50 @@ async function onClientReady() {
 }
 
 async function onInteraction(interaction: Interaction) {
-    if (interaction.type === InteractionType.ApplicationCommand) {
-        await sendResponse(interaction, InteractionResponseType.Acknowledge);
+    if (interaction.type !== InteractionType.ApplicationCommand) {
+        return sendResponse(interaction, InteractionResponseType.Pong);
+    }
+    await sendResponse(interaction, InteractionResponseType.Acknowledge);
 
-        const guild = await client.guilds.fetch(interaction.guild_id);
-        const channel = await client.channels.fetch(interaction.channel_id) as TextChannel;
-        const member = new GuildMember(client, interaction.member, guild);
-        const options = parseInteractionDataOption(interaction.data.options);
-        const permissions = channel.permissionsFor(member);
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const channel = await client.channels.fetch(interaction.channel_id) as TextChannel;
+    const member = new GuildMember(client, interaction.member, guild);
+    const options = parseInteractionDataOption(interaction.data.options);
+    const permissions = channel.permissionsFor(member);
 
-        const command = commands[interaction.data.name];
-        try {
-            if (command) {
-                if (command.permission && !permissions.has(command.permission)) {
-                    return;
-                }
+    const name = interaction.data.name;
+    const command = commands[name];
+    try {
+        let response;
+        if (command) {
+            if (command.permission && !permissions.has(command.permission))
+                throw new Error('You don\'t have permission to execute this command.');
 
-                const response = await command.execute(options, member, channel);
-                if (response) {
-                    return sendFollowup(interaction, member, response);
-                }
-            } else {
-                if (!permissions.has('SEND_MESSAGES')) {
-                    return;
-                }
+            response = await command.execute(options, member, channel);
+        } else if (await CustomCommand.has(name, member)) {
+            if (!permissions.has('SEND_MESSAGES'))
+                throw new Error('You don\'t have permission to execute this command.');
 
-                const command = commands['custom'] as CustomCommand;
-                const response = await command.executeCommand(interaction.data.name, options, member, channel);
-                if (response) {
-                    return sendFollowup(interaction, member, response);
+            response = await CustomCommand.execute(interaction.data.name, options, member, channel);
+        } else if (await RoleCommand.has(name, member)) {
+            response = await RoleCommand.execute(interaction.data.name, options, member);
+        }
+
+        if (response) {
+            return sendFollowup(interaction, member, response);
+        }
+    } catch (e) {
+        const dm = await member.createDM();
+        await dm.send({
+            embed: {
+                title: `⚠️ ${e.message}`,
+                description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
+                footer: {
+                    iconURL: guild.iconURL(),
+                    text: `${guild.name} #${channel.name}`
                 }
             }
-        } catch(e) {
-            const dm = await member.createDM();
-            await dm.send({
-                embed: {
-                    title: `⚠️ ${e.message}`,
-                    description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
-                    footer: {
-                        iconURL: guild.iconURL(),
-                        text: `${guild.name} #${channel.name}`
-                    }
-                }
-            });
-        }
-    } else {
-        return sendResponse(interaction, InteractionResponseType.Pong);
+        });
     }
 }
 
@@ -138,7 +136,7 @@ function parseInteractionDataOption(options?: ApplicationCommandInteractionDataO
 
 function reconstructCommand(options?: ApplicationCommandInteractionDataOption[]) {
     let command = '';
-    if(options) {
+    if (options) {
         options.forEach(o => {
             command += ` ${o.name}`;
             command += o.value ? `:${o.value}` : reconstructCommand(o.options);

@@ -91,12 +91,13 @@ export class CustomCommand extends Command {
             options: this.getCommandOptions(options.text as string)
         });
 
+        const database = CustomCommand.getDatabase(author);
         let attachment;
         if (options.attachment) {
-            attachment = await this.getDatabase(author).downloadFile(options.attachment as string);
+            attachment = await database.downloadFile(options.attachment as string);
         }
 
-        const data = await this.getDatabase(author).readData();
+        const data = await database.readData();
         data[command.name] = {
             id: command.id,
             text: options.text,
@@ -106,7 +107,7 @@ export class CustomCommand extends Command {
             user: author.user.tag,
             added: new Date().toISOString(),
         };
-        await this.getDatabase(author).writeData(data);
+        await database.writeData(data);
 
         this.log.info(`New custom command ${options.name} by ${author.user.tag}, total: ${data.length}`);
         return {description: `New guild command "${options.name}" added!`};
@@ -143,7 +144,8 @@ export class CustomCommand extends Command {
     }
 
     private async delete(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
-        const data = await this.getDatabase(author).readData();
+        const database = CustomCommand.getDatabase(author);
+        const data = await database.readData();
 
         const name = options.name as string;
         const command = data[name];
@@ -151,17 +153,21 @@ export class CustomCommand extends Command {
 
         delete data[name];
 
-        await this.getDatabase(author).writeData(data);
+        await database.writeData(data);
         await this.deleteGuildCommand(author.client, author.guild.id, command.id);
 
         this.log.info(`Custom command ${options.name} deleted by ${author.user.tag}, total: ${data.length}`);
         return {description: `Guild command "${options.name}" removed!`};
     }
 
-    async executeCommand(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
-        const data = await this.getDatabase(author).readData();
+    static async has(name: string, author: GuildMember): Promise<boolean> {
+        const data = await CustomCommand.getDatabase(author).readData();
+        return data[name] !== undefined;
+    }
+
+    static async execute(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
+        const data = await CustomCommand.getDatabase(author).readData();
         const command = data[name];
-        if (!command) return;
 
         if (command.channel && channel.id !== command.channel) {
             const commandChannel = await author.client.channels.fetch(command.channel) as TextChannel;
@@ -191,7 +197,7 @@ export class CustomCommand extends Command {
         return response;
     }
 
-    private getText(options: CommandOptions, text: string, author: GuildMember) {
+    private static getText(options: CommandOptions, text: string, author: GuildMember) {
         if (!text)
             return null;
 
@@ -201,7 +207,7 @@ export class CustomCommand extends Command {
             .replace(ROLE, `<@&${options.role}>`);
     }
 
-    private getDatabase(author: GuildMember) {
+    private static getDatabase(author: GuildMember) {
         return Database.get(CustomCommand, author.guild.id);
     }
 
