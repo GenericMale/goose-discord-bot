@@ -13,6 +13,7 @@
     "debug": "nodemon -w server -e ts -x \"node --inspect-brk -r ts-node/register -r tsconfig-paths/register src/main.ts\""
   },
   "dependencies": {
+    "cheerio": "^1.0.0-rc.5",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "log4js": "^6.3.0",
