@@ -1,10 +1,10 @@
-import {Command, CommandOptions} from '../command';
+import {Command, CommandOptions, CommandResponse} from '../command';
 import * as log4js from 'log4js';
 import {promisify} from 'util';
 import * as moment from 'moment';
 
 import {exec as execAsync} from 'child_process';
-import {Client, GuildMember, MessageEmbedOptions, WSEventType} from 'discord.js';
+import {Client, GuildMember, WSEventType} from 'discord.js';
 
 const exec = promisify(execAsync);
 
@@ -15,7 +15,7 @@ export class StatusCommand extends Command {
         description: 'Get bot status'
     };
 
-    private readonly log = log4js.getLogger(StatusCommand.name);
+    private log = log4js.getLogger(StatusCommand.name);
     private receivedMessages = 0;
     private sentMessages = 0;
 
@@ -29,7 +29,7 @@ export class StatusCommand extends Command {
         });
     }
 
-    async execute(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         let changes;
         try {
             changes = (await exec('git log -3 --pretty="%cr by %cn: %B"')).stdout;

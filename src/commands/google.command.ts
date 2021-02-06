@@ -1,6 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
-import {Command, CommandOptions} from '../command';
-import {GuildMember, MessageEmbedOptions, TextChannel} from 'discord.js';
+import {Command, CommandOptions, CommandResponse} from '../command';
+import {GuildMember, TextChannel} from 'discord.js';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 import * as cheerio from 'cheerio';
@@ -34,7 +34,7 @@ export class GoogleCommand extends Command {
         ]
     };
 
-    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
+    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
         const response = await fetch(URL + new URLSearchParams({
             q: options.term,
             safe: channel.nsfw ? 'images' : 'active',

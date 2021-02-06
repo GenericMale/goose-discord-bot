@@ -1,6 +1,5 @@
 import {ApplicationCommandOptionType} from '../application-command';
-import {Command, CommandOptions} from '../command';
-import {MessageEmbedOptions} from 'discord.js';
+import {Command, CommandOptions, CommandResponse} from '../command';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 
@@ -22,7 +21,7 @@ export class UrbanCommand extends Command {
         ]
     };
 
-    async execute(options: CommandOptions): Promise<MessageEmbedOptions> {
+    async execute(options: CommandOptions): Promise<CommandResponse> {
         const response = await fetch(API_URL + new URLSearchParams({term: options.term}).toString());
 
         if (!response.ok)

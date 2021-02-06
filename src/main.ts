@@ -11,7 +11,7 @@ import {
     InteractionResponseType,
     InteractionType
 } from './interaction';
-import {Command, CommandOptions} from './command';
+import {Command, CommandOptions, CommandResponse} from './command';
 import {ApplicationCommand} from './application-command';
 
 dotenv.config();
@@ -85,7 +85,7 @@ async function onInteraction(interaction: Interaction) {
     const name = interaction.data.name;
     const command = commands[name];
     try {
-        let response;
+        let response: CommandResponse;
         if (command) {
             if (command.permission && !permissions.has(command.permission))
                 throw new Error('You don\'t have permission to execute this command.');
@@ -96,11 +96,23 @@ async function onInteraction(interaction: Interaction) {
         }
 
         if (response) {
-            return sendFollowup(interaction, member, response);
+            if(response.dm === true) {
+                response.footer = {
+                    iconURL: guild.iconURL(),
+                    text: `${guild.name} #${channel.name}`
+                };
+                return (await member.createDM()).send({embed: response});
+            } else {
+                response.footer = {
+                    text: member.displayName,
+                    iconURL: member.user.displayAvatarURL()
+                };
+                response.color = member.guild.me.displayColor;
+                return sendFollowup(interaction, response);
+            }
         }
     } catch (e) {
-        const dm = await member.createDM();
-        await dm.send({
+        await (await member.createDM()).send({
             embed: {
                 title: `⚠️ ${e.message}`,
                 description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
@@ -141,12 +153,7 @@ function reconstructCommand(options?: ApplicationCommandInteractionDataOption[])
 }
 
 
-async function sendFollowup(interaction: Interaction, member: GuildMember, data?: MessageEmbedOptions): Promise<Message> {
-    data.footer = {
-        text: member.displayName,
-        iconURL: member.user.displayAvatarURL()
-    };
-    data.color = member.guild.me.displayColor;
+async function sendFollowup(interaction: Interaction, data?: MessageEmbedOptions): Promise<Message> {
     return new WebhookClient(client.user.id, interaction.token).send({embeds: [data]});
 }
 

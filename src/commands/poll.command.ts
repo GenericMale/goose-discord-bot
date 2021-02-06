@@ -1,5 +1,5 @@
 import {ApplicationCommandOptionType} from '../application-command';
-import {Command, CommandOptions} from '../command';
+import {Command, CommandOptions, CommandResponse} from '../command';
 import {GuildMember, TextChannel} from 'discord.js';
 
 const EMOJIS = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
@@ -57,7 +57,7 @@ export class PollCommand extends Command {
         ]
     };
 
-    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<void> {
+    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
         const answers = [];
         const emojis = [];
 

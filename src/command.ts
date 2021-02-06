@@ -12,10 +12,12 @@ export abstract class Command {
     }
 
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions | void> {
+    async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
         //override to perform interaction
     }
 }
+
+export type CommandResponse = MessageEmbedOptions & {dm?: boolean} | void;
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CommandOptions = { [name: string]: any; }

@@ -1,7 +1,6 @@
 import {ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType} from '../application-command';
-import {Command, CommandOptions} from '../command';
-import {Client, GuildMember, MessageEmbedOptions, PermissionResolvable, TextChannel} from 'discord.js';
-import * as log4js from 'log4js';
+import {Command, CommandOptions, CommandResponse} from '../command';
+import {Client, GuildMember, PermissionResolvable, TextChannel} from 'discord.js';
 import * as path from 'path';
 import {Database} from '../database';
 
@@ -129,12 +128,10 @@ export class CustomCommand extends Command {
     };
     permission: PermissionResolvable = 'ADMINISTRATOR';
 
-    private readonly log = log4js.getLogger(CustomCommand.name);
-
     /**
      * Execute the command administration.
      */
-    async execute(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         if (options.message) {
             return this.message(options.message as CommandOptions, author);
         } else if (options.rolemenu) {
@@ -144,7 +141,7 @@ export class CustomCommand extends Command {
         }
     }
 
-    private async message(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
+    private async message(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         if (!options.text && !options.attachment)
             throw new Error('Either a text or an attachment has to be defined for the command.');
 
@@ -173,8 +170,10 @@ export class CustomCommand extends Command {
         };
         await database.writeData(data);
 
-        this.log.info(`New message command ${options.name} by ${author.user.tag}, total: ${data.length}`);
-        return {description: `New guild command "${options.name}" added!`};
+        return {
+            dm: true,
+            description: `New guild command "${options.name}" added!`
+        };
     }
 
     private getCommandOptions(text: string) {
@@ -207,7 +206,7 @@ export class CustomCommand extends Command {
         return commandOptions;
     }
 
-    private async roleMenu(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
+    private async roleMenu(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         const roles = [];
         const choices = [];
         for (let i = 0; i < 10; i++) {
@@ -246,11 +245,13 @@ export class CustomCommand extends Command {
         };
         await database.writeData(data);
 
-        this.log.info(`New role menu command ${options.name} by ${author.user.tag}, total: ${data.length}`);
-        return {description: `New guild command "${options.name}" added!`};
+        return {
+            dm: true,
+            description: `New guild command "${options.name}" added!`
+        };
     }
 
-    private async delete(options: CommandOptions, author: GuildMember): Promise<MessageEmbedOptions> {
+    private async delete(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         const database = CustomCommand.getDatabase(author);
         const data = await database.readData();
 
@@ -263,8 +264,10 @@ export class CustomCommand extends Command {
         await database.writeData(data);
         await this.deleteGuildCommand(author.client, author.guild.id, command.id);
 
-        this.log.info(`Guild command ${options.name} deleted by ${author.user.tag}, total: ${data.length}`);
-        return {description: `Guild command "${options.name}" removed!`};
+        return {
+            dm: true,
+            description: `Guild command "${options.name}" removed!`
+        };
     }
 
 
@@ -282,7 +285,7 @@ export class CustomCommand extends Command {
     /**
      * Execute a custom command.
      */
-    static async execute(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions | void> {
+    static async execute(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
         const data = await CustomCommand.getDatabase(author).readData();
         const command = data[name];
 
@@ -309,7 +312,7 @@ export class CustomCommand extends Command {
             throw new Error(`Command can only be executed by users with the ${commandRole.name} role!`);
         }
 
-        const response: MessageEmbedOptions = {
+        const response: CommandResponse = {
             description: this.getText(options, command.text, author)
         };
 
@@ -337,28 +340,40 @@ export class CustomCommand extends Command {
     }
 
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private static async executeRole(command: any, options: CommandOptions, author: GuildMember): Promise<void> {
+    private static async executeRole(command: any, options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         const roleID = options.role;
 
         if (roleID && command.roles.includes(roleID)) {
-            await CustomCommand.updateRoles(author, command.roles, roleID);
+            return await CustomCommand.updateRoles(author, command.roles, roleID);
         } else if (command.roles.length === 1) {
-            await CustomCommand.updateRoles(author, command.roles, command.roles[0]);
+            return await CustomCommand.updateRoles(author, command.roles, command.roles[0]);
         } else {
             throw new Error('Invalid role selected.');
         }
     }
 
-    private static async updateRoles(author: GuildMember, roles: string[], roleID: string) {
-        if (author.roles.cache.some(r => r.id === roleID)) {
+    private static async updateRoles(author: GuildMember, roles: string[], roleID: string): Promise<CommandResponse> {
+        let role = author.roles.cache.find(r => r.id === roleID);
+        if (role) {
             //if user already has the role -> remove it
-            return author.roles.remove(roleID);
+            await author.roles.remove(roleID);
+            return {
+                dm: true,
+                description: `You have lost the ${role.name} role.`
+            };
         } else {
+            role = author.guild.roles.cache.find(r => r.id === roleID);
+
             //if user doesn't have the role -> remove all other roles in group and give him the new one
             await Promise.all(author.roles.cache
                 .filter(r => roles.includes(r.id))
                 .map(r => author.roles.remove(r)));
-            return author.roles.add(roleID);
+            await author.roles.add(roleID);
+
+            return {
+                dm: true,
+                description: `You now have the ${role.name} role.`
+            };
         }
     }
 
