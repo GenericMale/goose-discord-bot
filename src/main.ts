@@ -4,7 +4,7 @@ import * as log4js from 'log4js';
 import {Client, GuildMember, Message, MessageEmbedOptions, TextChannel, WebhookClient, WSEventType} from 'discord.js';
 
 import * as commandClasses from './commands';
-import {CustomCommand, RoleCommand} from './commands';
+import {CustomCommand} from './commands';
 import {
     ApplicationCommandInteractionDataOption,
     Interaction,
@@ -92,12 +92,7 @@ async function onInteraction(interaction: Interaction) {
 
             response = await command.execute(options, member, channel);
         } else if (await CustomCommand.has(name, member)) {
-            if (!permissions.has('SEND_MESSAGES'))
-                throw new Error('You don\'t have permission to execute this command.');
-
             response = await CustomCommand.execute(interaction.data.name, options, member, channel);
-        } else if (await RoleCommand.has(name, member)) {
-            response = await RoleCommand.execute(interaction.data.name, options, member);
         }
 
         if (response) {
@@ -154,6 +149,11 @@ async function sendFollowup(interaction: Interaction, member: GuildMember, data?
     data.color = member.guild.me.displayColor;
     return new WebhookClient(client.user.id, interaction.token).send({embeds: [data]});
 }
+
+
+
+//----- Helper methods for interaction integration -----\\
+// TODO: remove once discord.js supports interactions
 
 async function createGlobalCommand(config: ApplicationCommand): Promise<ApplicationCommand> {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any

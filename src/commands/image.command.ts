@@ -1,6 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions} from '../command';
-import {GuildMember, MessageEmbedOptions, PermissionResolvable, TextChannel} from 'discord.js';
+import {GuildMember, MessageEmbedOptions, TextChannel} from 'discord.js';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 import * as cheerio from 'cheerio';
@@ -30,7 +30,6 @@ export class ImageCommand extends Command {
             }
         ]
     };
-    permission: PermissionResolvable = 'SEND_MESSAGES';
 
     async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<MessageEmbedOptions> {
         const response = await fetch(URL + new URLSearchParams({

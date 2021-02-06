@@ -4,7 +4,7 @@ import {ApplicationCommand} from './application-command';
 
 export abstract class Command {
     interaction?: ApplicationCommand;
-    permission: PermissionResolvable;
+    permission: PermissionResolvable = 'SEND_MESSAGES';
 
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
     async init(client: Client): Promise<void> {

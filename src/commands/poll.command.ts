@@ -1,6 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions} from '../command';
-import {GuildMember, PermissionResolvable, TextChannel} from 'discord.js';
+import {GuildMember, TextChannel} from 'discord.js';
 
 const EMOJIS = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
 
@@ -56,7 +56,6 @@ export class PollCommand extends Command {
             }
         ]
     };
-    permission: PermissionResolvable = 'SEND_MESSAGES';
 
     async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<void> {
         const answers = [];

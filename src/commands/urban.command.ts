@@ -1,6 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions} from '../command';
-import {MessageEmbedOptions, PermissionResolvable} from 'discord.js';
+import {MessageEmbedOptions} from 'discord.js';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 
@@ -21,7 +21,6 @@ export class UrbanCommand extends Command {
             }
         ]
     };
-    permission: PermissionResolvable = 'SEND_MESSAGES';
 
     async execute(options: CommandOptions): Promise<MessageEmbedOptions> {
         const response = await fetch(API_URL + new URLSearchParams({term: options.term}).toString());

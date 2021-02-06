@@ -4,7 +4,7 @@ import {promisify} from 'util';
 import * as moment from 'moment';
 
 import {exec as execAsync} from 'child_process';
-import {Client, GuildMember, MessageEmbedOptions, PermissionResolvable, WSEventType} from 'discord.js';
+import {Client, GuildMember, MessageEmbedOptions, WSEventType} from 'discord.js';
 
 const exec = promisify(execAsync);
 
@@ -14,7 +14,6 @@ export class StatusCommand extends Command {
         name: 'status',
         description: 'Get bot status'
     };
-    permission: PermissionResolvable = 'SEND_MESSAGES';
 
     private readonly log = log4js.getLogger(StatusCommand.name);
     private receivedMessages = 0;
