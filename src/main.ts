@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as log4js from 'log4js';
 
-import {Client, GuildMember, Message, TextChannel, WebhookClient, WSEventType} from 'discord.js';
+import {Client, GuildMember, Message, MessageEmbedOptions, TextChannel, WebhookClient, WSEventType} from 'discord.js';
 
 import * as commandClasses from './commands';
 import {CustomCommand} from './commands';
@@ -11,7 +11,7 @@ import {
     InteractionResponseType,
     InteractionType
 } from './interaction';
-import {Command, CommandOptions, CommandResponse} from './command';
+import {Command, CommandOptions} from './command';
 import {ApplicationCommand} from './application-command';
 
 dotenv.config();
@@ -82,13 +82,13 @@ async function onInteraction(interaction: Interaction) {
 
         const command = commands[interaction.data.name];
         if (command) {
-            if (!permissions.has(command.permission)) {
+            if (command.permission && !permissions.has(command.permission)) {
                 return;
             }
 
             const response = await command.execute(options, member, channel);
             if (response) {
-                return sendFollowup(interaction, response);
+                return sendFollowup(interaction, member, response);
             }
         } else {
             if (!permissions.has('SEND_MESSAGES')) {
@@ -96,9 +96,9 @@ async function onInteraction(interaction: Interaction) {
             }
 
             const command = commands['custom'] as CustomCommand;
-            const response = await command.executeCommand(interaction.data.name, options, member);
+            const response = await command.executeCommand(interaction.data.name, options, member, channel);
             if (response) {
-                return sendFollowup(interaction, response);
+                return sendFollowup(interaction, member, response);
             }
         }
     } else {
@@ -123,13 +123,13 @@ function parseInteractionDataOption(options?: ApplicationCommandInteractionDataO
 }
 
 
-async function sendFollowup(interaction: Interaction, data?: CommandResponse | string): Promise<Message> {
-    const webhook = new WebhookClient(client.user.id, interaction.token);
-    if(typeof data === 'string') {
-        return webhook.send(data);
-    } else {
-        return webhook.send(data.content, {files: data.files, embeds: data.embeds});
-    }
+async function sendFollowup(interaction: Interaction, member: GuildMember, data?: MessageEmbedOptions): Promise<Message> {
+    data.footer = {
+        text: member.displayName,
+        iconURL: member.user.displayAvatarURL()
+    };
+    data.color = member.guild.me.displayColor;
+    return new WebhookClient(client.user.id, interaction.token).send({embeds: [data]});
 }
 
 async function createGlobalCommand(config: ApplicationCommand): Promise<ApplicationCommand> {

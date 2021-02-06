@@ -1,4 +1,4 @@
-import {Command, CommandOptions, CommandResponse} from '../command';
+import {Command, CommandOptions} from '../command';
 import * as log4js from 'log4js';
 import {promisify} from 'util';
 import * as moment from 'moment';
@@ -47,7 +47,7 @@ export class BotControlCommand extends Command {
         });
     }
 
-    async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse | void> {
+    async execute(options: CommandOptions, author: GuildMember): Promise<void> {
         let response: MessageOptions | void;
         if (options.status) {
             response = await this.status(author);
