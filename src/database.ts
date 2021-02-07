@@ -8,11 +8,12 @@ const log = log4js.getLogger('Utils');
 //directory containing persistent data
 const DB_DIR = '.data';
 
-export class Database {
+export class Database<T> {
 
-    private static DATABASES: { [guild: string]: { [database: string]: Database; }; } = {};
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private static DATABASES: { [guild: string]: { [database: string]: Database<any>; }; } = {};
 
-    static get(command: typeof Command, guild: string): Database {
+    static get<T>(command: typeof Command, guild: string): Database<T> {
         let database = Database.DATABASES[guild] ? Database.DATABASES[guild][command.name] : null;
         if(!database) {
             const databaseFile = path.join(DB_DIR, guild, `${command.name}.json`);
@@ -22,13 +23,17 @@ export class Database {
         return database;
     }
 
-    private cache: DatabaseData;
+    static guilds(): string[] {
+        return Object.keys(Database.DATABASES);
+    }
+
+    private cache: T;
 
     private constructor(
         private databaseFile: string,
     ) {}
 
-    async readData(): Promise<DatabaseData> {
+    async readData(): Promise<T> {
         if (!this.cache) {
             try {
                 //read data from disc and store it in DB
@@ -36,14 +41,14 @@ export class Database {
                 this.cache = JSON.parse(data);
             } catch (e) {
                 log.warn(`Couldn't read ${this.databaseFile}: ${e.message}`);
-                this.cache = {};
+                this.cache = {} as T;
             }
         }
 
         return this.cache;
     }
 
-    async writeData(data: DatabaseData): Promise<void> {
+    async writeData(data: T): Promise<void> {
         await fs.mkdir(path.dirname(this.databaseFile), {recursive: true});
 
         //write file to disc and update database cache
@@ -52,6 +57,3 @@ export class Database {
     }
 
 }
-
-//eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DatabaseData = any;

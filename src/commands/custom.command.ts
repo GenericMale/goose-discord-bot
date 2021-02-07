@@ -160,7 +160,7 @@ export class CustomCommand extends Command {
         const database = CustomCommand.getDatabase(author);
         let attachment;
         if (options.attachment) {
-            if(process.env.IMGUR_CLIENT_ID) {
+            if (process.env.IMGUR_CLIENT_ID) {
                 const params = new URLSearchParams();
                 params.append('image', options.attachment);
 
@@ -173,7 +173,7 @@ export class CustomCommand extends Command {
                 });
 
                 const imgur = await response.json();
-                if(response.ok && imgur.success) {
+                if (response.ok && imgur.success) {
                     attachment = imgur.data.link;
                 } else {
                     const error = imgur.data && imgur.data.error && imgur.data.error.message ?
@@ -301,7 +301,6 @@ export class CustomCommand extends Command {
     }
 
 
-
     /**
      * Check if we have a command with the given name.
      */
@@ -309,7 +308,6 @@ export class CustomCommand extends Command {
         const data = await CustomCommand.getDatabase(author).readData();
         return data[name] !== undefined;
     }
-
 
 
     /**
@@ -406,10 +404,9 @@ export class CustomCommand extends Command {
     /**
      * Lookup our database.
      */
-    private static getDatabase(author: GuildMember) {
+    private static getDatabase(author: GuildMember): Database<CustomCommandData> {
         return Database.get(CustomCommand, author.guild.id);
     }
-
 
 
     //----- Helper methods for interaction integration -----\\
@@ -425,4 +422,20 @@ export class CustomCommand extends Command {
         return (client as any).api.applications(client.user.id).guilds(guild).commands(id).delete();
     }
 
+}
+
+type CustomCommandData = {
+    [command: string]: {
+        id: string,
+        type: 'MESSAGE' | 'ROLE',
+        user: string,
+        added: string,
+
+        text?: string,
+        attachment?: string,
+        role?: number,
+        channel?: number,
+
+        roles?: string[]
+    }
 }
