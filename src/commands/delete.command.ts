@@ -38,7 +38,7 @@ export class DeleteCommand extends Command {
         }
 
         messages = messages.slice(0, Math.max(1, options.number));
-        await Promise.all(messages.map(m => m.delete()));
+        await channel.bulkDelete(messages);
 
         return {
             dm: true,
