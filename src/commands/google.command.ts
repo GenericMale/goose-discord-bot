@@ -8,7 +8,6 @@ import * as querystring from 'querystring';
 
 const URL = 'https://google.com/search?';
 const ICON = 'https://cdn4.iconfinder.com/data/icons/socialcones/508/Google-256.png';
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0';
 
 // WARNING: POTENTIALLY FRAGILE
 // After googling & inspecting element I found that div.g is the div for each
@@ -43,9 +42,7 @@ export class GoogleCommand extends Command {
             oe: 'utf-8',
             hl: 'en-US',
             lr: 'lang_en'
-        }).toString(), {
-            headers: {'User-Agent': USER_AGENT}
-        });
+        }).toString());
 
         if (!response.ok)
             throw new Error(`Google search failed: ${response.statusText}`)
