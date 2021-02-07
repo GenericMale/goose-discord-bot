@@ -1,12 +1,12 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
+import * as Icons from '../icons';
 import {GuildMember, TextChannel} from 'discord.js';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 import * as cheerio from 'cheerio';
 
 const URL = 'https://google.com/search?';
-const ICON = 'https://cdn4.iconfinder.com/data/icons/socialcones/508/Google-256.png';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0';
 
 // WARNING: POTENTIALLY FRAGILE
@@ -63,8 +63,9 @@ export class ImageCommand extends Command {
             return {
                 author: {
                     name: `Google Image Search: ${options.term}`,
-                    iconURL: ICON
+                    iconURL: Icons.GOOGLE.url
                 },
+                color: Icons.GOOGLE.color,
                 title: $(link).attr('title'),
                 url: link.attr('href'),
                 image: {
@@ -73,6 +74,6 @@ export class ImageCommand extends Command {
             };
         }
 
-        throw new Error('Google image search failed!');
+        throw new Error(`Google couldn't find anything 😩`);
     }
 }

@@ -1,4 +1,5 @@
 import {Command, CommandOptions, CommandResponse} from '../command';
+import * as Icons from '../icons';
 import * as log4js from 'log4js';
 import {promisify} from 'util';
 import * as moment from 'moment';
@@ -39,7 +40,11 @@ export class StatusCommand extends Command {
 
         return {
             dm: true,
-            title: 'Bot Stats',
+            author: {
+                name: 'Bot Status',
+                iconURL: Icons.DATABASE.url
+            },
+            color: Icons.DATABASE.color,
             fields: [
                 {
                     name: '⏲️  Started',

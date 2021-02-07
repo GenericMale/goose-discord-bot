@@ -1,10 +1,10 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
+import * as Icons from '../icons';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 
-const API_URL = 'http://api.urbandictionary.com/v0/define?';
-const ICON = 'https://g.udimg.com/assets/apple-touch-icon-2ad9dfa3cb34c1d2740aaf1e8bcac791e2e654939e105241f3d3c8b889e4ac0c.png';
+const API_URL = 'https://api.urbandictionary.com/v0/define?';
 
 export class UrbanCommand extends Command {
 
@@ -37,9 +37,10 @@ export class UrbanCommand extends Command {
         return {
             author: {
                 name: `Urban Dictionary: ${result.word}`,
-                iconURL: ICON,
+                iconURL: Icons.URBAN_DICTIONARY.url,
                 url: result.permalink
             },
+            color: Icons.URBAN_DICTIONARY.color,
             description: result.definition,
             fields: result.example ? [{
                 name: 'Example',

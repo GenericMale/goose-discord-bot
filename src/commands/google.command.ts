@@ -1,5 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
+import * as Icons from '../icons';
 import {GuildMember, TextChannel} from 'discord.js';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
@@ -7,7 +8,6 @@ import * as cheerio from 'cheerio';
 import * as querystring from 'querystring';
 
 const URL = 'https://google.com/search?';
-const ICON = 'https://cdn4.iconfinder.com/data/icons/socialcones/508/Google-256.png';
 
 // WARNING: POTENTIALLY FRAGILE
 // After googling & inspecting element I found that div.g is the div for each
@@ -62,14 +62,15 @@ export class GoogleCommand extends Command {
                 return {
                     author: {
                         name: `Google Search: ${options.term}`,
-                        iconURL: ICON
+                        iconURL: Icons.GOOGLE.url
                     },
+                    color: Icons.GOOGLE.color,
                     title: $(title).text(),
                     description: $(description).text().substring(0, 2048),
                     url: href as string,
                 };
             }
         }
-        throw new Error('Google search failed!');
+        throw new Error(`Google couldn't find anything 😩`);
     }
 }

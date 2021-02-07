@@ -1,5 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
+import * as Icons from '../icons';
 import {Client, EmbedFieldData, GuildMember, PermissionResolvable} from 'discord.js';
 import * as moment from 'moment';
 import {Database} from '../database';
@@ -178,6 +179,9 @@ export class RoleCommand extends Command {
         if (!role)
             throw new Error(`Role ${option.role} not found!`);
 
+        if(!author.hasPermission('ADMINISTRATOR') && author.roles.highest.position < role.position)
+            throw new Error(`You don't have permission to give or take the ${role.name} role!`);
+
         if (action === 'GIVE') await member.roles.add(role, option.reason);
         if (action === 'TAKE') await member.roles.remove(role, option.reason);
 
@@ -259,7 +263,11 @@ export class RoleCommand extends Command {
 
         return {
             dm: true,
-            title: 'Temporary Roles',
+            author: {
+                iconURL: Icons.INFO.url,
+                name: 'Temporary Roles',
+            },
+            color: Icons.INFO.color,
             description: fields.length > 0 ? '' : 'Currently no temporary role assignments.',
             fields
         };
@@ -269,6 +277,11 @@ export class RoleCommand extends Command {
         const dm = await user.createDM();
         return dm.send({
             embed: {
+                author: {
+                    iconURL: Icons.INFO.url,
+                    name: 'Information'
+                },
+                color: Icons.INFO.color,
                 description,
                 fields: reason ? [{name: 'Reason', value: reason}] : undefined,
                 footer: {

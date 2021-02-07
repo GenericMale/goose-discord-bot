@@ -13,6 +13,7 @@ import {
 } from './interaction';
 import {Command, CommandOptions, CommandResponse} from './command';
 import {ApplicationCommand} from './application-command';
+import * as Icons from 'icons';
 
 dotenv.config();
 log4js.configure({
@@ -97,6 +98,11 @@ async function onInteraction(interaction: Interaction) {
 
         if (response) {
             if(response.dm === true) {
+                response.author = response.author || {
+                    iconURL: Icons.INFO.url,
+                    name: 'Information'
+                }
+                response.color = response.color || Icons.INFO.color;
                 response.footer = {
                     iconURL: guild.iconURL(),
                     text: `${guild.name} #${channel.name}`
@@ -107,14 +113,19 @@ async function onInteraction(interaction: Interaction) {
                     text: member.displayName,
                     iconURL: member.user.displayAvatarURL()
                 };
-                response.color = member.guild.me.displayColor;
+                response.color = response.color || member.guild.me.displayColor;
                 return sendFollowup(interaction, response);
             }
         }
     } catch (e) {
         await (await member.createDM()).send({
             embed: {
-                title: `⚠️ ${e.message}`,
+                author: {
+                    iconURL: Icons.ERROR.url,
+                    name: 'Command Failed'
+                },
+                color: Icons.ERROR.color,
+                title: e.message,
                 description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
                 footer: {
                     iconURL: guild.iconURL(),

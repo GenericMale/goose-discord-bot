@@ -1,5 +1,6 @@
 import {ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
+import * as Icons from '../icons';
 import {GuildMember, TextChannel} from 'discord.js';
 
 const EMOJIS = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
@@ -72,7 +73,11 @@ export class PollCommand extends Command {
 
         const message = await channel.send({
             embed: {
-                title: `🗳️ ${options.topic}`,
+                author: {
+                    name: options.topic,
+                    iconURL: Icons.QUESTION.url
+                },
+                color: Icons.QUESTION.color,
                 description: answers.join('\n'),
                 footer: {
                     text: author.displayName,
