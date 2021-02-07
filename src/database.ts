@@ -1,13 +1,9 @@
 import * as path from 'path';
-import {createWriteStream, promises as fs} from 'fs';
-import fetch from 'node-fetch';
+import {promises as fs} from 'fs';
 import * as log4js from 'log4js';
-import {pipeline as pipelineAsync} from 'stream';
-import {promisify} from 'util';
 import {Command} from './command';
 
 const log = log4js.getLogger('Utils');
-const pipeline = promisify(pipelineAsync);
 
 //directory containing persistent data
 const DB_DIR = '.data';
@@ -19,11 +15,9 @@ export class Database {
     static get(command: typeof Command, guild: string): Database {
         let database = Database.DATABASES[guild] ? Database.DATABASES[guild][command.name] : null;
         if(!database) {
-            const dir = path.join(DB_DIR, guild);
-            const databaseFile = path.join(dir, `${command.name}.json`);
-            const downloadDir = path.join(dir, command.name);
+            const databaseFile = path.join(DB_DIR, guild, `${command.name}.json`);
             Database.DATABASES[guild] = Database.DATABASES[guild] || {};
-            database = Database.DATABASES[guild][command.name] = new Database(databaseFile, downloadDir);
+            database = Database.DATABASES[guild][command.name] = new Database(databaseFile);
         }
         return database;
     }
@@ -32,7 +26,6 @@ export class Database {
 
     private constructor(
         private databaseFile: string,
-        private downloadDir: string
     ) {}
 
     async readData(): Promise<DatabaseData> {
@@ -56,19 +49,6 @@ export class Database {
         //write file to disc and update database cache
         await fs.writeFile(this.databaseFile, JSON.stringify(data, null, 2));
         this.cache = data;
-    }
-
-    async downloadFile(url: string): Promise<string> {
-        await fs.mkdir(this.downloadDir, {recursive: true});
-
-        const name = Math.random().toString().substr(2);
-        const dest = path.join(this.downloadDir, name + path.extname(url));
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`unexpected response ${response.statusText}`);
-
-        await pipeline(response.body, createWriteStream(dest));
-        return dest;
     }
 
 }

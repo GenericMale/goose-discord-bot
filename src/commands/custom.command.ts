@@ -1,8 +1,12 @@
 import {ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import {Client, GuildMember, PermissionResolvable, TextChannel} from 'discord.js';
-import * as path from 'path';
 import {Database} from '../database';
+import fetch from 'node-fetch';
+import {URLSearchParams} from 'url';
+import * as log4js from 'log4js';
+
+const IMGUR_API_URL = 'https://api.imgur.com/3/image';
 
 const TYPE_ROLE = 'ROLE';
 const TYPE_MESSAGE = 'MESSAGE';
@@ -128,6 +132,8 @@ export class CustomCommand extends Command {
     };
     permission: PermissionResolvable = 'ADMINISTRATOR';
 
+    private log = log4js.getLogger(CustomCommand.name);
+
     /**
      * Execute the command administration.
      */
@@ -154,7 +160,31 @@ export class CustomCommand extends Command {
         const database = CustomCommand.getDatabase(author);
         let attachment;
         if (options.attachment) {
-            attachment = await database.downloadFile(options.attachment as string);
+            if(process.env.IMGUR_CLIENT_ID) {
+                const params = new URLSearchParams();
+                params.append('image', options.attachment);
+
+                const response = await fetch(IMGUR_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`
+                    },
+                    body: params
+                });
+
+                const imgur = await response.json();
+                if(response.ok && imgur.success) {
+                    attachment = imgur.data.link;
+                } else {
+                    const error = imgur.data && imgur.data.error && imgur.data.error.message ?
+                        imgur.data.error.message : response.statusText;
+                    this.log.warn(`Failed to upload attachment ${options.attachment}: ${error}`);
+
+                    attachment = options.attachment;
+                }
+            } else {
+                attachment = options.attachment;
+            }
         }
 
         const data = await database.readData();
@@ -317,14 +347,9 @@ export class CustomCommand extends Command {
         };
 
         if (command.attachment) {
-            const name = command.name + path.extname(command.attachment);
             response.image = {
-                url: `attachment://${name}`
+                url: command.attachment
             };
-            response.files = [{
-                attachment: command.attachment,
-                name
-            }];
         }
         return response;
     }
