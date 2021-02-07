@@ -38,6 +38,7 @@ export class StatusCommand extends Command {
         }
 
         return {
+            dm: true,
             title: 'Bot Stats',
             fields: [
                 {
