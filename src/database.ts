@@ -41,7 +41,6 @@ export class Database<T> {
                 this.cache = JSON.parse(data);
             } catch (e) {
                 log.warn(`Couldn't read ${this.databaseFile}: ${e.message}`);
-                this.cache = {} as T;
             }
         }
 

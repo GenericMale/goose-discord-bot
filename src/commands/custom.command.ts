@@ -187,7 +187,7 @@ export class CustomCommand extends Command {
             }
         }
 
-        const data = await database.readData();
+        const data = await database.readData() || {};
         data[command.name] = {
             id: command.id,
             type: TYPE_MESSAGE,
@@ -195,8 +195,8 @@ export class CustomCommand extends Command {
             attachment: attachment,
             role: options.role,
             channel: options.channel,
-            user: author.user.tag,
-            added: new Date().toISOString(),
+            user: author.id,
+            added: new Date().getTime(),
         };
         await database.writeData(data);
 
@@ -265,13 +265,13 @@ export class CustomCommand extends Command {
 
         const database = CustomCommand.getDatabase(author);
 
-        const data = await database.readData();
+        const data = await database.readData() || {};
         data[command.name] = {
             id: command.id,
             type: TYPE_ROLE,
             roles: roles,
-            user: author.user.tag,
-            added: new Date().toISOString(),
+            user: author.id,
+            added: new Date().getTime(),
         };
         await database.writeData(data);
 
@@ -284,6 +284,7 @@ export class CustomCommand extends Command {
     private async delete(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         const database = CustomCommand.getDatabase(author);
         const data = await database.readData();
+        if (!data) throw new Error('Custom Command not found!');
 
         const name = options.name as string;
         const command = data[name];
@@ -306,7 +307,7 @@ export class CustomCommand extends Command {
      */
     static async has(name: string, author: GuildMember): Promise<boolean> {
         const data = await CustomCommand.getDatabase(author).readData();
-        return data[name] !== undefined;
+        return data && data[name] !== undefined;
     }
 
 
@@ -429,12 +430,12 @@ type CustomCommandData = {
         id: string,
         type: 'MESSAGE' | 'ROLE',
         user: string,
-        added: string,
+        added: number,
 
         text?: string,
         attachment?: string,
-        role?: number,
-        channel?: number,
+        role?: string,
+        channel?: string,
 
         roles?: string[]
     }

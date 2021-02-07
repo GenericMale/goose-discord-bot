@@ -131,7 +131,7 @@ function parseInteractionDataOption(options?: ApplicationCommandInteractionDataO
         options.forEach(o => {
             if (o.options) {
                 map[o.name] = parseInteractionDataOption(o.options);
-            } else if (o.value) {
+            } else if (o.value !== undefined && o.value !== null) {
                 map[o.name] = o.value;
             } else {
                 map[o.name] = true;

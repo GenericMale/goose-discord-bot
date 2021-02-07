@@ -42,7 +42,7 @@ export class DeleteCommand extends Command {
 
         return {
             dm: true,
-            description: `${messages.length} Messages Deleted`
+            description: `${messages.length} Message(s) Deleted`
         };
     }
 }
