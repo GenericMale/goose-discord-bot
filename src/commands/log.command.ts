@@ -53,7 +53,7 @@ export class LogCommand extends Command {
             description: 'Get current audit log configuration.'
         }]
     };
-    permission: PermissionResolvable = 'MANAGE_ROLES';
+    permission: PermissionResolvable = 'VIEW_AUDIT_LOG';
 
     private readonly listeners: EventListenerMap = {
         guildMemberAdd: (member: GuildMember) => ({
