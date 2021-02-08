@@ -13,7 +13,7 @@ import {
 } from './interaction';
 import {Command, CommandOptions, CommandResponse} from './command';
 import {ApplicationCommand} from './application-command';
-import * as Icons from 'icons';
+import * as Icons from './icons';
 
 dotenv.config();
 log4js.configure({
