@@ -27,13 +27,17 @@ Set the token as `DISCORD_TOKEN` environment variable or create a file named `.e
     DISCORD_TOKEN=xyz
 
 Optionally the bot can automatically upload images and gifs for custom commands to imgur to make sure they stay reachable.
+
 To do that register an application on imgur: [Imgur - Register an Application](https://api.imgur.com/oauth2/addclient)
+
 Set the `IMGUR_CLIENT_ID` as environment variable or add it to the `.env` file.
 
 ## Inviting the Bot
 
 To get the bot onto a discord server, head to the application in the discord developer portal as explained above.
+
 Switch to the OAuth2 Settings and select `bot` and `applications.commands` as scopes, as well as `Administrator` as permission.
+
 Copy the invite URL and open it in a browser to add the bot to any server you are administrator of.
 
 ## Commands
