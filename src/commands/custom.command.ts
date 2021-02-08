@@ -157,7 +157,7 @@ export class CustomCommand extends Command {
             options: this.getCommandOptions(options.text as string)
         });
 
-        const database = CustomCommand.getDatabase(author);
+        const database = CustomCommand.getDatabase(author.guild.id);
         let attachment;
         if (options.attachment) {
             if (process.env.IMGUR_CLIENT_ID) {
@@ -202,7 +202,7 @@ export class CustomCommand extends Command {
 
         return {
             dm: true,
-            description: `New guild command "${options.name}" added!`
+            description: `New guild command **/${options.name}** added!`
         };
     }
 
@@ -263,7 +263,7 @@ export class CustomCommand extends Command {
             }] : undefined
         });
 
-        const database = CustomCommand.getDatabase(author);
+        const database = CustomCommand.getDatabase(author.guild.id);
 
         const data = await database.readData() || {};
         data[command.name] = {
@@ -277,12 +277,12 @@ export class CustomCommand extends Command {
 
         return {
             dm: true,
-            description: `New guild command "${options.name}" added!`
+            description: `New guild command **/${options.name}** added!`
         };
     }
 
     private async delete(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
-        const database = CustomCommand.getDatabase(author);
+        const database = CustomCommand.getDatabase(author.guild.id);
         const data = await database.readData();
         if (!data) throw new Error('Custom Command not found!');
 
@@ -297,7 +297,7 @@ export class CustomCommand extends Command {
 
         return {
             dm: true,
-            description: `Guild command "${options.name}" removed!`
+            description: `Guild command **/${options.name}** removed!`
         };
     }
 
@@ -306,7 +306,7 @@ export class CustomCommand extends Command {
      * Check if we have a command with the given name.
      */
     static async has(name: string, author: GuildMember): Promise<boolean> {
-        const data = await CustomCommand.getDatabase(author).readData();
+        const data = await CustomCommand.getDatabase(author.guild.id).readData();
         return data && data[name] !== undefined;
     }
 
@@ -315,7 +315,7 @@ export class CustomCommand extends Command {
      * Execute a custom command.
      */
     static async execute(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
-        const data = await CustomCommand.getDatabase(author).readData();
+        const data = await CustomCommand.getDatabase(author.guild.id).readData();
         const command = data[name];
 
         if (command.type === TYPE_MESSAGE) {
@@ -383,7 +383,7 @@ export class CustomCommand extends Command {
             await author.roles.remove(roleID);
             return {
                 dm: true,
-                description: `You have lost the ${role.name} role.`
+                description: `You have lost the **${role.name}** role.`
             };
         } else {
             role = author.guild.roles.cache.find(r => r.id === roleID);
@@ -396,7 +396,7 @@ export class CustomCommand extends Command {
 
             return {
                 dm: true,
-                description: `You now have the ${role.name} role.`
+                description: `You now have the **${role.name}** role.`
             };
         }
     }
@@ -405,8 +405,8 @@ export class CustomCommand extends Command {
     /**
      * Lookup our database.
      */
-    private static getDatabase(author: GuildMember): Database<CustomCommandData> {
-        return Database.get(CustomCommand, author.guild.id);
+    private static getDatabase(guildID: string): Database<CustomCommandData> {
+        return Database.get(CustomCommand, guildID);
     }
 
 

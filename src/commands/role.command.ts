@@ -145,8 +145,8 @@ export class RoleCommand extends Command {
                         await this.sendMessage(
                             member,
                             action === 'TAKE' ?
-                                `The ${role.name} role has been returned to you!` :
-                                `The ${role.name} role has been removed from you again!`
+                                `The **${role.name}** role has been returned to you!` :
+                                `The **${role.name}** role has been removed from you again!`
                         );
                     }
                 }
@@ -210,16 +210,16 @@ export class RoleCommand extends Command {
             await this.sendMessage(
                 member,
                 action === 'GIVE' ?
-                    `You have been given the ${role.name} role for ${expirationStr}!` :
-                    `The ${role.name} has been removed from you for ${expirationStr}!`,
+                    `You have been given the **${role.name}** role for **${expirationStr}**!` :
+                    `The **${role.name}** has been removed from you for **${expirationStr}**!`,
                 option.reason
             );
         }
         return {
             dm: true,
             description: action === 'GIVE' ?
-                `${role.name} was given to ${member.displayName} for ${expirationStr}.` :
-                `${role.name} was removed from ${member.displayName} for ${expirationStr}.`
+                `**${role.name}** was given to **${member.displayName}** for **${expirationStr}**.` :
+                `**${role.name}** was removed from **${member.displayName}** for **${expirationStr}**.`
         };
     }
 
@@ -233,7 +233,7 @@ export class RoleCommand extends Command {
             const member = await author.guild.members.fetch(option.user);
             return {
                 dm: true,
-                description: `Temporary role assignments cleared for user ${member ? member.displayName : option.user}.`
+                description: `Temporary role assignments cleared for user **${member ? member.displayName : option.user}**.`
             };
         } else {
             data = option.user ? data.filter(d => d.memberID !== option.user) : [];
@@ -256,7 +256,7 @@ export class RoleCommand extends Command {
             const role = await author.guild.roles.fetch(roleID);
             fields.push({
                 name: member ? `${member.user.tag}` : memberID,
-                value: `${action === 'GIVE' ? 'Given' : 'Taken'} ${role.name} by ${mod.displayName}, ${moment(expiration).fromNow(true)} left`
+                value: `${action === 'GIVE' ? 'Given' : 'Taken'} *${role.name}* by *${mod.displayName}*, *${moment(expiration).fromNow(true)}* left`
                     + (reason ? `\nReason: ${reason}` : '')
             });
         }
