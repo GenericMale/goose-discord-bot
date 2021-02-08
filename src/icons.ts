@@ -25,6 +25,10 @@ export const DATABASE = {
     color: '#bdc3c7'
 }
 
+export const COGS = {
+    url: 'https://raw.githubusercontent.com/paomedia/small-n-flat/master/png/24/cogs.png',
+    color: '#bdc3c7'
+}
 
 
 export const GOOGLE = {
