@@ -1,7 +1,7 @@
 {
-  "name": "discord-slash-bot",
+  "name": "goose-discord-bot",
   "version": "1.0.0",
-  "description": "Simple discord bot using slash commands (interactions)",
+  "description": "Discord bot using slash commands (interactions)",
   "bin": "dist/main.js",
   "author": "Generic Goose",
   "license": "MIT",
