@@ -160,9 +160,11 @@ export class LogCommand extends Command {
     }
 
     private async writeLog(event: string, guild: Guild, user: User, createEmbed: () => MessageEmbedOptions) {
-        const config = await LogCommand.getDatabase(guild.id).readData();
-        if (config && config.channel && config.events.includes(event)) {
-            const channel = await guild.client.channels.fetch(config.channel) as TextChannel;
+        if(!guild) return;
+
+        const db = await LogCommand.getDatabase(guild.id);
+        if (db.data && db.data.channel && db.data.events.includes(event)) {
+            const channel = await guild.client.channels.fetch(db.data.channel) as TextChannel;
             if (channel) {
                 const embed = createEmbed();
                 if (!embed) return;
@@ -182,17 +184,17 @@ export class LogCommand extends Command {
     }
 
     async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
-        let config = await LogCommand.getDatabase(author.guild.id).readData();
-        if (!config) {
-            config = {events: Object.keys(Events)};  //enable all events by default
+        const db = await LogCommand.getDatabase(author.guild.id);
+        if (!db.data) {
+            db.data = {events: Object.keys(Events)};  //enable all events by default
         }
 
         if (options.category) {
-            return this.executeCategory(options.category, author, config);
+            return this.executeCategory(options.category, author, db.data);
         } else if (options.channel) {
-            return this.executeChannel(options.channel, author, config);
+            return this.executeChannel(options.channel, author, db.data);
         } else if (options.config) {
-            return this.executeConfig(author, config);
+            return this.executeConfig(author, db.data);
         }
     }
 
@@ -205,7 +207,8 @@ export class LogCommand extends Command {
             config.events = config.events.filter(event => event !== options.event);
         }
 
-        await LogCommand.getDatabase(author.guild.id).writeData(config);
+        const db = await LogCommand.getDatabase(author.guild.id);
+        await db.writeData(config);
         return {
             dm: true,
             description: `Logging of **${Events[options.event]}** event **${options.enabled ? 'enabled' : 'disabled'}**.`
@@ -221,7 +224,9 @@ export class LogCommand extends Command {
             throw new Error('Only text channels can be used for the audit log!');
 
         config.channel = options.channel;
-        await LogCommand.getDatabase(author.guild.id).writeData(config);
+
+        const db = await LogCommand.getDatabase(author.guild.id);
+        await db.writeData(config);
         return {
             dm: true,
             description: `Audit log channel set to **#${channel.name}**.`
@@ -257,7 +262,7 @@ export class LogCommand extends Command {
     }
 
 
-    private static getDatabase(guildID: string): Database<LogConfiguration> {
+    private static async getDatabase(guildID: string): Promise<Database<LogConfiguration>> {
         return Database.get(LogCommand, guildID);
     }
 }

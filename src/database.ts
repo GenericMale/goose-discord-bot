@@ -13,12 +13,21 @@ export class Database<T> {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static DATABASES: { [guild: string]: { [database: string]: Database<any>; }; } = {};
 
-    static get<T>(command: typeof Command, guild: string): Database<T> {
+    static async get<T>(command: typeof Command, guild: string): Promise<Database<T>> {
         let database = Database.DATABASES[guild] ? Database.DATABASES[guild][command.name] : null;
         if(!database) {
             const databaseFile = path.join(DB_DIR, guild, `${command.name}.json`);
+
+            let cache;
+            try {
+                const data = await fs.readFile(databaseFile, 'utf8');
+                cache = JSON.parse(data);
+            } catch (e) {
+                log.info(`Couldn't read ${databaseFile}: ${e.message}`);
+            }
+
             Database.DATABASES[guild] = Database.DATABASES[guild] || {};
-            database = Database.DATABASES[guild][command.name] = new Database(databaseFile);
+            database = Database.DATABASES[guild][command.name] = new Database(databaseFile, cache);
         }
         return database;
     }
@@ -27,32 +36,17 @@ export class Database<T> {
         return Object.keys(Database.DATABASES);
     }
 
-    private cache: T;
-
     private constructor(
         private databaseFile: string,
+        public data: T
     ) {}
-
-    async readData(): Promise<T> {
-        if (!this.cache) {
-            try {
-                //read data from disc and store it in DB
-                const data = await fs.readFile(this.databaseFile, 'utf8');
-                this.cache = JSON.parse(data);
-            } catch (e) {
-                log.warn(`Couldn't read ${this.databaseFile}: ${e.message}`);
-            }
-        }
-
-        return this.cache;
-    }
 
     async writeData(data: T): Promise<void> {
         await fs.mkdir(path.dirname(this.databaseFile), {recursive: true});
 
         //write file to disc and update database cache
         await fs.writeFile(this.databaseFile, JSON.stringify(data, null, 2));
-        this.cache = data;
+        this.data = data;
     }
 
 }

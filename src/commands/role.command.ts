@@ -106,11 +106,10 @@ export class RoleCommand extends Command {
     }
 
     private async giveBackRoles(member: GuildMember) {
-        const database = RoleCommand.getDatabase(member.guild.id);
-        const data = await database.readData();
-        if (!data) return;
+        const db = await RoleCommand.getDatabase(member.guild.id);
+        if (!db.data) return;
 
-        return Promise.all(data
+        return Promise.all(db.data
             .filter(d => d.memberID === member.id && d.action === 'GIVE')
             .map(d => member.roles.add(d.roleID))
         );
@@ -121,15 +120,14 @@ export class RoleCommand extends Command {
 
         const guilds = await client.guilds.cache.array();
         for (const guild of guilds) {
-            const database = RoleCommand.getDatabase(guild.id);
-            const data = await database.readData();
-            if (!data) continue;
+            const db = await RoleCommand.getDatabase(guild.id);
+            if (!db.data) continue;
 
             let changed = false;
             const newData = [];
-            for (const {expiration, memberID, action, roleID, notify, reason} of data) {
+            for (const {expiration, memberID, action, roleID, notify, reason} of db.data) {
                 if (expiration > now) {
-                    newData.push(data);
+                    newData.push(db.data);
                     continue;
                 }
 
@@ -152,7 +150,7 @@ export class RoleCommand extends Command {
                 }
             }
 
-            if (changed) await database.writeData(newData);
+            if (changed) await db.writeData(newData);
         }
 
         setTimeout(() => this.checkRoles(client), CHECK_INTERVAL);
@@ -185,8 +183,8 @@ export class RoleCommand extends Command {
         if (action === 'GIVE') await member.roles.add(role, option.reason);
         if (action === 'TAKE') await member.roles.remove(role, option.reason);
 
-        const database = RoleCommand.getDatabase(author.guild.id);
-        const data = await database.readData() || [];
+        const db = await RoleCommand.getDatabase(author.guild.id);
+        const data = db.data || [];
         const expiration = new Date().getTime() + (option.duration * 60 * 1000);
         const expirationStr = moment(expiration).fromNow(true);
 
@@ -204,7 +202,7 @@ export class RoleCommand extends Command {
             user: author.id,
             added: new Date().getTime()
         });
-        await database.writeData(data);
+        await db.writeData(data);
 
         if (option.notify) {
             await this.sendMessage(
@@ -224,11 +222,11 @@ export class RoleCommand extends Command {
     }
 
     private async executeClear(option: CommandOptions, author: GuildMember): Promise<CommandResponse> {
-        const database = RoleCommand.getDatabase(author.guild.id);
-        let data = await database.readData() || [];
+        const db = await RoleCommand.getDatabase(author.guild.id);
+        let data = db.data || [];
         if(option.user) {
             data = data.filter(d => d.memberID !== option.user);
-            await database.writeData(data);
+            await db.writeData(data);
 
             const member = await author.guild.members.fetch(option.user);
             return {
@@ -237,7 +235,7 @@ export class RoleCommand extends Command {
             };
         } else {
             data = option.user ? data.filter(d => d.memberID !== option.user) : [];
-            await database.writeData(data);
+            await db.writeData(data);
             return {
                 dm: true,
                 description: `All Temporary role assignments cleared.`
@@ -246,8 +244,8 @@ export class RoleCommand extends Command {
     }
 
     private async executeGet(author: GuildMember): Promise<CommandResponse> {
-        const database = RoleCommand.getDatabase(author.guild.id);
-        const data = await database.readData() || [];
+        const db = await RoleCommand.getDatabase(author.guild.id);
+        const data = db.data || [];
 
         const fields: EmbedFieldData[] = [];
         for (const {memberID, roleID, expiration, reason, action, user} of data) {
@@ -292,7 +290,7 @@ export class RoleCommand extends Command {
         });
     }
 
-    private static getDatabase(guildID: string): Database<RoleData> {
+    private static async getDatabase(guildID: string): Promise<Database<RoleData>> {
         return Database.get(RoleCommand, guildID);
     }
 }

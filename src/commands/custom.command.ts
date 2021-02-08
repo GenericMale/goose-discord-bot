@@ -157,7 +157,6 @@ export class CustomCommand extends Command {
             options: this.getCommandOptions(options.text as string)
         });
 
-        const database = CustomCommand.getDatabase(author.guild.id);
         let attachment;
         if (options.attachment) {
             if (process.env.IMGUR_CLIENT_ID) {
@@ -187,7 +186,8 @@ export class CustomCommand extends Command {
             }
         }
 
-        const data = await database.readData() || {};
+        const db = await CustomCommand.getDatabase(author.guild.id);
+        const data = db.data || {};
         data[command.name] = {
             id: command.id,
             type: TYPE_MESSAGE,
@@ -198,7 +198,7 @@ export class CustomCommand extends Command {
             user: author.id,
             added: new Date().getTime(),
         };
-        await database.writeData(data);
+        await db.writeData(data);
 
         return {
             dm: true,
@@ -263,9 +263,8 @@ export class CustomCommand extends Command {
             }] : undefined
         });
 
-        const database = CustomCommand.getDatabase(author.guild.id);
-
-        const data = await database.readData() || {};
+        const db = await CustomCommand.getDatabase(author.guild.id);
+        const data = await db.data || {};
         data[command.name] = {
             id: command.id,
             type: TYPE_ROLE,
@@ -273,7 +272,7 @@ export class CustomCommand extends Command {
             user: author.id,
             added: new Date().getTime(),
         };
-        await database.writeData(data);
+        await db.writeData(data);
 
         return {
             dm: true,
@@ -282,17 +281,16 @@ export class CustomCommand extends Command {
     }
 
     private async delete(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
-        const database = CustomCommand.getDatabase(author.guild.id);
-        const data = await database.readData();
-        if (!data) throw new Error('Custom Command not found!');
+        const db = await CustomCommand.getDatabase(author.guild.id);
+        if (!db.data) throw new Error('Custom Command not found!');
 
         const name = options.name as string;
-        const command = data[name];
+        const command = db.data[name];
         if (!command) throw new Error('Custom Command not found!');
 
-        delete data[name];
+        delete db.data[name];
 
-        await database.writeData(data);
+        await db.writeData(db.data);
         await this.deleteGuildCommand(author.client, author.guild.id, command.id);
 
         return {
@@ -306,8 +304,8 @@ export class CustomCommand extends Command {
      * Check if we have a command with the given name.
      */
     static async has(name: string, author: GuildMember): Promise<boolean> {
-        const data = await CustomCommand.getDatabase(author.guild.id).readData();
-        return data && data[name] !== undefined;
+        const db = await CustomCommand.getDatabase(author.guild.id);
+        return db.data && db.data[name] !== undefined;
     }
 
 
@@ -315,8 +313,8 @@ export class CustomCommand extends Command {
      * Execute a custom command.
      */
     static async execute(name: string, options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
-        const data = await CustomCommand.getDatabase(author.guild.id).readData();
-        const command = data[name];
+        const db = await CustomCommand.getDatabase(author.guild.id);
+        const command = db.data[name];
 
         if (command.type === TYPE_MESSAGE) {
             return this.executeMessage(command, options, author, channel);
@@ -405,7 +403,7 @@ export class CustomCommand extends Command {
     /**
      * Lookup our database.
      */
-    private static getDatabase(guildID: string): Database<CustomCommandData> {
+    private static async getDatabase(guildID: string): Promise<Database<CustomCommandData>> {
         return Database.get(CustomCommand, guildID);
     }
 
