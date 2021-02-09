@@ -47,6 +47,7 @@ Currently, the following commands are supported:
 * `/big` Print a big version of an emoji or a users avatar.
 * `/custom` Allows creation of guild scoped custom commands and setting up a role menu.
 * `/delete` Bulk delete messages.
+* `/feed` Post update of rss feeds to a channel (currently only supports youtube).
 * `/google` Search websites on google.
 * `/image` Search images on google.
 * `/log` Audit log in a configured channel. Supports server joins, bans, user role changes, nickname changes, message deletions & message edits.
