@@ -32,10 +32,6 @@ export class Database<T> {
         return database;
     }
 
-    static guilds(): string[] {
-        return Object.keys(Database.DATABASES);
-    }
-
     private constructor(
         private databaseFile: string,
         public data: T

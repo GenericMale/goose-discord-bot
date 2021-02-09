@@ -30,6 +30,11 @@ export const COGS = {
     color: '#bdc3c7'
 }
 
+export const RSS = {
+    url: 'https://raw.githubusercontent.com/paomedia/small-n-flat/master/png/24/rss.png',
+    color: '#e67e22'
+}
+
 
 export const GOOGLE = {
     url: 'https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png',

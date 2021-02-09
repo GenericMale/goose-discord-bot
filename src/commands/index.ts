@@ -1,6 +1,7 @@
 export * from './big.command';
 export * from './custom.command';
 export * from './delete.command';
+export * from './feed.command';
 export * from './google.command';
 export * from './image.command';
 export * from './log.command';
