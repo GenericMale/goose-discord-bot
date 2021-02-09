@@ -35,7 +35,6 @@ let commands: { [name: string]: Command };
 client.on('debug', info => log.debug(info));
 client.on('warn', info => log.warn(info));
 client.on('ready', () => onClientReady());
-client.ws.on('INTERACTION_CREATE' as WSEventType, interaction => onInteraction(interaction));
 
 client.login(process.env.DISCORD_TOKEN).catch(reason => {
     log.error(`Discord login failed: ${reason}`);
@@ -47,7 +46,7 @@ async function onClientReady() {
     commands = {};
     const classes = Object.values(commandClasses);
 
-    let orphanCommands = await getGlobalCommands();
+    const orphanCommands = await getGlobalCommands();
     for (const commandClass of classes) {
         const command: Command = new commandClass();
         await command.init(client);
@@ -55,20 +54,29 @@ async function onClientReady() {
         if (command.interaction) {
             commands[command.interaction.name] = command;
 
-            await createGlobalCommand(command.interaction);
-            orphanCommands = orphanCommands.filter(c => c.name !== command.interaction.name);
+            const i = orphanCommands.findIndex(c => c.name === command.interaction.name);
+            if(i == -1) {
+                await createGlobalCommand(command.interaction);
+                log.info(`Command ${commandClass.name} created`);
+            } else {
+                const oldCommand = orphanCommands.splice(i, 1)[0];
+                if(!commandsEquals(oldCommand, command.interaction)) {
+                    await createGlobalCommand(command.interaction);
+                    log.info(`Command ${commandClass.name} updated`);
+                }
+            }
         } else {
             commands[`${commandClass.name}.class`] = command;
         }
-
-        log.info(`Initialized ${commandClass.name}`);
     }
 
     //delete old commands
     for (const command of orphanCommands) {
         await deleteGlobalCommand(command.id);
-        log.info(`Deleted ${command.name}`);
+        log.info(`Command ${command.name} deleted`);
     }
+
+    client.ws.on('INTERACTION_CREATE' as WSEventType, interaction => onInteraction(interaction));
 }
 
 async function onInteraction(interaction: Interaction) {
@@ -168,6 +176,10 @@ async function sendFollowup(interaction: Interaction, data?: MessageEmbedOptions
     return new WebhookClient(client.user.id, interaction.token).send({embeds: [data]});
 }
 
+function commandsEquals(a: ApplicationCommand, b: ApplicationCommand) {
+    const compareFields = ['name', 'description', 'options', 'type', 'required', 'choices', 'value'];
+    return JSON.stringify(a, compareFields) === JSON.stringify(b, compareFields);
+}
 
 
 //----- Helper methods for interaction integration -----\\
