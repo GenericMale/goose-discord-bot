@@ -55,7 +55,7 @@ async function onClientReady() {
             commands[command.interaction.name] = command;
 
             const i = orphanCommands.findIndex(c => c.name === command.interaction.name);
-            if(i == -1) {
+            if(i === -1) {
                 await createGlobalCommand(command.interaction);
                 log.info(`Command ${commandClass.name} created`);
             } else {
@@ -80,6 +80,10 @@ async function onClientReady() {
 }
 
 async function onInteraction(interaction: Interaction) {
+    if(!interaction) {
+        return;
+    }
+
     if (interaction.type !== InteractionType.ApplicationCommand) {
         return sendResponse(interaction, InteractionResponseType.Pong);
     }

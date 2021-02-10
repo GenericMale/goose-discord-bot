@@ -106,13 +106,13 @@ export class CustomCommand extends Command {
                         name: 'role6',
                         description: 'Sixth role'
                     }, {
-                        type: ApplicationCommandOptionType.ROLE,
-                        name: 'role7',
-                        description: 'Seventh role'
+                        type: ApplicationCommandOptionType.BOOLEAN,
+                        name: 'multiple',
+                        description: 'Allow getting multiple of the roles in the group.',
                     }, {
-                        type: ApplicationCommandOptionType.ROLE,
-                        name: 'role8',
-                        description: 'Eighth role'
+                        type: ApplicationCommandOptionType.BOOLEAN,
+                        name: 'toggle',
+                        description: 'Enable toggling of the role. When enabled a role can be removed by picking it again.',
                     }
                 ]
             }, {
@@ -269,6 +269,8 @@ export class CustomCommand extends Command {
             id: command.id,
             type: TYPE_ROLE,
             roles: roles,
+            multiple: options.multiple,
+            toggle: options.toggle,
             user: author.id,
             added: new Date().getTime(),
         };
@@ -323,8 +325,7 @@ export class CustomCommand extends Command {
         }
     }
 
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private static async executeMessage(command: any, options: CommandOptions, author: GuildMember, channel: TextChannel) {
+    private static async executeMessage(command: CommandSettings, options: CommandOptions, author: GuildMember, channel: TextChannel) {
         if (!channel.permissionsFor(author).has('SEND_MESSAGES')) {
             throw new Error('You don\'t have permission to execute this command.');
         }
@@ -361,37 +362,41 @@ export class CustomCommand extends Command {
             .replace(ROLE, `<@&${options.role}>`);
     }
 
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private static async executeRole(command: any, options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
+    private static async executeRole(command: CommandSettings, options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         const roleID = options.role;
 
         if (roleID && command.roles.includes(roleID)) {
-            return await CustomCommand.updateRoles(author, command.roles, roleID);
+            return await CustomCommand.updateRoles(author, command.roles, roleID, command.multiple, command.toggle);
         } else if (command.roles.length === 1) {
-            return await CustomCommand.updateRoles(author, command.roles, command.roles[0]);
+            return await CustomCommand.updateRoles(author, command.roles, command.roles[0], command.multiple, command.toggle);
         } else {
             throw new Error('Invalid role selected.');
         }
     }
 
-    private static async updateRoles(author: GuildMember, roles: string[], roleID: string): Promise<CommandResponse> {
+    private static async updateRoles(author: GuildMember, roles: string[], roleID: string, multiple: boolean, toggle: boolean): Promise<CommandResponse> {
         let role = author.roles.cache.find(r => r.id === roleID);
         if (role) {
-            //if user already has the role -> remove it
-            await author.roles.remove(roleID);
-            return {
-                dm: true,
-                description: `You have lost the **${role.name}** role.`
-            };
+            if(toggle) {
+                //if user already has the role -> remove it
+                await author.roles.remove(roleID);
+                return {
+                    dm: true,
+                    description: `You have lost the **${role.name}** role.`
+                };
+            } else {
+                throw Error(`You already have the **${role.name}** role.`)
+            }
         } else {
-            role = author.guild.roles.cache.find(r => r.id === roleID);
+            if(!multiple) {
+                //if user doesn't have the role -> remove all other roles in group and give him the new one
+                await Promise.all(author.roles.cache
+                    .filter(r => roles.includes(r.id))
+                    .map(r => author.roles.remove(r)));
+            }
 
-            //if user doesn't have the role -> remove all other roles in group and give him the new one
-            await Promise.all(author.roles.cache
-                .filter(r => roles.includes(r.id))
-                .map(r => author.roles.remove(r)));
             await author.roles.add(roleID);
-
+            role = author.guild.roles.cache.find(r => r.id === roleID);
             return {
                 dm: true,
                 description: `You now have the **${role.name}** role.`
@@ -424,17 +429,21 @@ export class CustomCommand extends Command {
 }
 
 type CustomCommandData = {
-    [command: string]: {
-        id: string,
-        type: 'MESSAGE' | 'ROLE',
-        user: string,
-        added: number,
+    [command: string]: CommandSettings
+}
 
-        text?: string,
-        attachment?: string,
-        role?: string,
-        channel?: string,
+type CommandSettings = {
+    id: string,
+    type: 'MESSAGE' | 'ROLE',
+    user: string,
+    added: number,
 
-        roles?: string[]
-    }
+    text?: string,
+    attachment?: string,
+    role?: string,
+    channel?: string,
+
+    roles?: string[],
+    multiple?: boolean,
+    toggle?: boolean
 }
