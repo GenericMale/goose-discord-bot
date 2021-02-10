@@ -174,10 +174,10 @@ export class LogCommand extends Command {
                         iconURL: user.displayAvatarURL(),
                         name: user.tag
                     };
+                    embed.footer = {
+                        text: `User ID: ${user.id}`
+                    };
                 }
-                embed.footer = {
-                    text: `User ID: ${user.id}`
-                };
                 return channel.send({embed});
             }
         }
