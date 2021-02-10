@@ -1,13 +1,10 @@
 import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import * as log4js from 'log4js';
-import {promisify} from 'util';
 import * as moment from 'moment';
-
-import {exec as execAsync} from 'child_process';
 import {Client, GuildMember, WSEventType} from 'discord.js';
 
-const exec = promisify(execAsync);
+const GITHUB_URL = 'https://github.com/GenericMale/goose-discord-bot';
 
 export class StatusCommand extends Command {
 
@@ -31,13 +28,6 @@ export class StatusCommand extends Command {
     }
 
     async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
-        let changes;
-        try {
-            changes = (await exec('git log -3 --pretty="%cr by %cn: %B"')).stdout;
-        } catch (e) {
-            this.log.warn('git log failed', e);
-        }
-
         return {
             dm: true,
             author: {
@@ -72,9 +62,9 @@ export class StatusCommand extends Command {
                     inline: true,
                 },
                 {
-                    name: '📑  Changes',
-                    value: changes || '-',
-                    inline: false,
+                    name: '🔗  GitHub',
+                    value: `[goose-discord-bot](${GITHUB_URL})`,
+                    inline: true,
                 },
             ],
         };
