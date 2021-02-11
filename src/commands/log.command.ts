@@ -64,28 +64,28 @@ export class LogCommand extends Command {
                     name: 'Account Created',
                     value: moment(member.user.createdAt).fromNow()
                 }],
-                color: '#43b581'
+                color: Icons.ADD.color
             })
         }),
         guildMemberRemove: (member: GuildMember) => ({
             guild: member.guild, user: member.user,
             embed: () => ({
                 description: `**${member.toString()} Left**`,
-                color: '#ff470f'
+                color: Icons.ERROR.color
             })
         }),
         guildBanAdd: (guild: Guild, user: User) => ({
             guild: guild, user: user,
             embed: () => ({
                 description: `**${user.toString()} Banned**`,
-                color: '#ff470f'
+                color: Icons.ERROR.color
             })
         }),
         guildBanRemove: (guild: Guild, user: User) => ({
             guild: guild, user: user,
             embed: () => ({
                 description: `**${user.toString()} Unbanned**`,
-                color: '#337fd5'
+                color: Icons.INFO.color
             })
         }),
         guildMemberUpdate: (oldMember: GuildMember, newMember: GuildMember) => ({
@@ -98,21 +98,21 @@ export class LogCommand extends Command {
                             {name: 'Before', value: oldMember.nickname || 'None'},
                             {name: 'After', value: newMember.nickname || 'None'}
                         ],
-                        color: '#337fd5'
+                        color: Icons.INFO.color
                     };
                 }
                 if (newMember.roles.cache.size > oldMember.roles.cache.size) {
                     const role = newMember.roles.cache.difference(oldMember.roles.cache).first();
                     return {
                         description: `**${newMember.toString()} was given the \`${role.name}\` role**`,
-                        color: '#337fd5'
+                        color: Icons.INFO.color
                     };
                 }
                 if (newMember.roles.cache.size < oldMember.roles.cache.size) {
                     const role = newMember.roles.cache.difference(oldMember.roles.cache).first();
                     return {
-                        description: `**${newMember.toString()} was removed from the \`${role.name}\` role**`,
-                        color: '#337fd5'
+                        description: `**${newMember.toString()} has lost the \`${role.name}\` role**`,
+                        color: Icons.INFO.color
                     };
                 }
             }
@@ -126,7 +126,7 @@ export class LogCommand extends Command {
                     {name: 'Before', value: oldMessage.cleanContent},
                     {name: 'After', value: newMessage.cleanContent}
                 ],
-                color: '#337fd5'
+                color: Icons.INFO.color
             } : null)
         }),
         messageDelete: (message: Message) => ({
@@ -134,14 +134,14 @@ export class LogCommand extends Command {
             embed: () => ({
                 description: `**Message from ${message.member ? message.member.toString() : 'someone'} in ${message.channel.toString()} deleted**` +
                     (message.cleanContent ? `\n${message.cleanContent}` : ''),
-                color: '#ff470f'
+                color: Icons.ERROR.color
             })
         }),
         messageDeleteBulk: (messages: Collection<Snowflake, Message>) => ({
             guild: messages.first().guild, user: null,
             embed: () => ({
                 description: `**${messages.size} messages in ${messages.first().channel.toString} deleted**`,
-                color: '#337fd5'
+                color: Icons.INFO.color
             })
         }),
     };
@@ -154,12 +154,12 @@ export class LogCommand extends Command {
             //eslint-disable-next-line @typescript-eslint/no-explicit-any
             client.on(event, (...args: any[]) => {
                 const log = listener(...args);
-                this.writeLog(event, log.guild, log.user, log.embed);
+                LogCommand.writeLog(event, log.guild, log.user, log.embed);
             });
         });
     }
 
-    private async writeLog(event: string, guild: Guild, user: User, createEmbed: () => MessageEmbedOptions) {
+    private static async writeLog(event: string, guild: Guild, user: User, createEmbed: () => MessageEmbedOptions) {
         if(!guild) return;
 
         const db = await LogCommand.getDatabase(guild.id);
@@ -261,6 +261,9 @@ export class LogCommand extends Command {
         };
     }
 
+    public static async logBotEvent(guild:Guild, user: User, embed: MessageEmbedOptions): Promise<void> {
+        await LogCommand.writeLog('botEvents', guild, user, () => embed);
+    }
 
     private static async getDatabase(guildID: string): Promise<Database<LogConfiguration>> {
         return Database.get(LogCommand, guildID);
@@ -276,7 +279,8 @@ enum Events {
     guildMemberUpdate = 'Member Roles/Name Updated',
     messageUpdate = 'Message Edited',
     messageDelete = 'Message Deleted',
-    messageDeleteBulk = 'Bulk Message Deletion'
+    messageDeleteBulk = 'Bulk Message Deletion',
+    botEvents = 'Bot Events'
 }
 
 type LogConfiguration = {

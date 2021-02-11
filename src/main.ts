@@ -4,7 +4,7 @@ import * as log4js from 'log4js';
 import {Client, GuildMember, Message, MessageEmbedOptions, TextChannel, WebhookClient, WSEventType} from 'discord.js';
 
 import * as commandClasses from './commands';
-import {CustomCommand} from './commands';
+import {CustomCommand, LogCommand} from './commands';
 import {
     ApplicationCommandInteractionDataOption,
     Interaction,
@@ -77,6 +77,30 @@ async function onClientReady() {
     }
 
     client.ws.on('INTERACTION_CREATE' as WSEventType, interaction => onInteraction(interaction));
+    log.info('All Commands initialized');
+
+    const guilds = client.guilds.cache.array();
+    for(const guild of guilds) {
+        const guildCommands = await getGuildCommands(guild.id);
+        return LogCommand.logBotEvent(guild, null, {
+            author: {
+                name: client.user.tag,
+                iconURL: client.user.displayAvatarURL()
+            },
+            color: Icons.ADD.color,
+            title: 'Bot Started',
+            fields: [{
+                name: 'Global Commands',
+                value: Object.keys(commands).map(c => `\`/${c}\``).join(' ')
+            }, {
+                name: 'Guild Commands',
+                value: guildCommands.map(c => `\`/${c.name}\``).join(' ')
+            }],
+            footer: {
+                text: `User ID: ${client.user.id}`
+            }
+        })
+    }
 }
 
 async function onInteraction(interaction: Interaction) {
@@ -85,8 +109,14 @@ async function onInteraction(interaction: Interaction) {
     }
 
     if (interaction.type !== InteractionType.ApplicationCommand) {
+        log.info(`Ping Interaction received`);
         return sendResponse(interaction, InteractionResponseType.Pong);
     }
+    log.info(`Application Command /${interaction.data.name} `+
+        `received from ${interaction.member.user.username}#${interaction.member.user.discriminator} `+
+        `in ${interaction.guild_id}/${interaction.channel_id}`
+    );
+
     await sendResponse(interaction, InteractionResponseType.Acknowledge);
 
     const guild = await client.guilds.fetch(interaction.guild_id);
@@ -130,6 +160,17 @@ async function onInteraction(interaction: Interaction) {
             }
         }
     } catch (e) {
+        log.warn(`Command failed: ${e.message}`);
+
+        const commandBlock = `\`\`\`/${interaction.data.name}${reconstructCommand(interaction.data.options)}\`\`\``;
+        await LogCommand.logBotEvent(guild, member.user, {
+            color: Icons.WARNING.color,
+            fields: [{
+                name: 'Command Failed',
+                value: e.message + commandBlock
+            }]
+        })
+
         await (await member.createDM()).send({
             embed: {
                 author: {
@@ -138,7 +179,7 @@ async function onInteraction(interaction: Interaction) {
                 },
                 color: Icons.ERROR.color,
                 title: e.message,
-                description: `/${interaction.data.name}${reconstructCommand(interaction.data.options)}`,
+                description: commandBlock,
                 footer: {
                     iconURL: guild.iconURL(),
                     text: `${guild.name} #${channel.name}`
@@ -197,6 +238,11 @@ async function createGlobalCommand(config: ApplicationCommand): Promise<Applicat
 async function getGlobalCommands(): Promise<ApplicationCommand[]> {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (client as any).api.applications(client.user.id).commands.get();
+}
+
+async function getGuildCommands(guild: string): Promise<ApplicationCommand[]> {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (client as any).api.applications(client.user.id).guilds(guild).commands.get();
 }
 
 async function deleteGlobalCommand(id: string): Promise<Buffer> {

@@ -385,7 +385,7 @@ export class CustomCommand extends Command {
                     description: `You have lost the **${role.name}** role.`
                 };
             } else {
-                throw Error(`You already have the **${role.name}** role.`)
+                throw new Error(`You already have the **${role.name}** role.`)
             }
         } else {
             if(!multiple) {

@@ -18,6 +18,11 @@ export const QUESTION = {
     color: '#3498db'
 }
 
+export const ADD = {
+    url: 'https://raw.githubusercontent.com/paomedia/small-n-flat/master/png/24/sign-add.png',
+    color: '#2ecc71'
+}
+
 
 
 export const DATABASE = {
