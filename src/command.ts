@@ -17,7 +17,7 @@ export abstract class Command {
     }
 }
 
-export type CommandResponse = MessageEmbedOptions & {dm?: boolean} | void;
+export type CommandResponse = (MessageEmbedOptions & {dm?: boolean} & {content?: string}) | void;
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CommandOptions = { [name: string]: any; }

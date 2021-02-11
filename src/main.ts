@@ -21,7 +21,7 @@ log4js.configure({
         out: {type: 'console'},
     },
     categories: {
-        default: {appenders: ['out'], level: 'trace'},
+        default: {appenders: ['out'], level: 'info'},
     }
 });
 const log = log4js.getLogger();
@@ -217,8 +217,14 @@ function reconstructCommand(options?: ApplicationCommandInteractionDataOption[])
 }
 
 
-async function sendFollowup(interaction: Interaction, data?: MessageEmbedOptions): Promise<Message> {
-    return new WebhookClient(client.user.id, interaction.token).send({embeds: [data]});
+async function sendFollowup(interaction: Interaction, data: CommandResponse): Promise<Message> {
+    if(data && data.content) {
+        return new WebhookClient(client.user.id, interaction.token).send(data.content, {
+            embeds: [data]
+        });
+    } else {
+        return new WebhookClient(client.user.id, interaction.token).send({embeds: [data as MessageEmbedOptions]});
+    }
 }
 
 function commandsEquals(a: ApplicationCommand, b: ApplicationCommand) {

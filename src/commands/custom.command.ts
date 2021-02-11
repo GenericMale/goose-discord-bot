@@ -341,7 +341,7 @@ export class CustomCommand extends Command {
         }
 
         const response: CommandResponse = {
-            description: this.getText(options, command.text, author)
+            content: this.getText(options, command.text, author)
         };
 
         if (command.attachment) {
