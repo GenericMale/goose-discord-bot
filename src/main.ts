@@ -82,7 +82,7 @@ async function onClientReady() {
     const guilds = client.guilds.cache.array();
     for(const guild of guilds) {
         const guildCommands = await getGuildCommands(guild.id);
-        return LogCommand.logBotEvent(guild, null, {
+        await LogCommand.logBotEvent(guild, null, {
             author: {
                 name: client.user.tag,
                 iconURL: client.user.displayAvatarURL()
