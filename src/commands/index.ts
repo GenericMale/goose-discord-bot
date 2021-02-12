@@ -9,3 +9,4 @@ export * from './poll.command';
 export * from './role.command';
 export * from './status.command';
 export * from './urban.command';
+export * from './whois.command';
