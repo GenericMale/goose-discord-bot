@@ -8,8 +8,6 @@ import * as Icons from '../icons';
 
 const CHECK_INTERVAL = 10 * 60 * 1000;
 
-const YOUTUBE_URL = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
-
 export class FeedCommand extends Command {
 
     interaction = {
@@ -22,7 +20,7 @@ export class FeedCommand extends Command {
             options: [{
                 type: ApplicationCommandOptionType.STRING,
                 name: 'url',
-                description: 'URL to the rss feed.',
+                description: 'URL to a rss/atom feed xml, e.g. https://www.youtube.com/feeds/videos.xml?channel_id=1234567890',
                 required: true
             }, {
                 type: ApplicationCommandOptionType.CHANNEL,
@@ -69,24 +67,19 @@ export class FeedCommand extends Command {
                 const channel = await client.channels.fetch(config.channelID) as TextChannel;
                 if (!channel) continue;
 
-                let link;
-                if (config.type === 'youtube') {
-                    const feed = await this.rss.parseURL(config.url);
-                    const video = feed.items[0];
-                    const pubDate = new Date(video.pubDate).getTime();
-                    if (pubDate && pubDate > config.lastUpdate) {
-                        link = video.link;
-                        config.lastUpdate = pubDate;
-                        changed = true;
-                    }
-                }
-                if(!link) continue;
+                const feed = await this.rss.parseURL(config.url);
+                const video = feed.items[0];
+                const pubDate = new Date(video.pubDate).getTime();
+                if (pubDate && pubDate > config.lastUpdate) {
+                    config.lastUpdate = pubDate;
+                    changed = true;
 
-                if(config.roleID) {
-                    const role = await channel.guild.roles.fetch(config.roleID);
-                    await channel.send(`${link} ${role.toString()}`);
-                } else {
-                    await channel.send(link);
+                    if (config.roleID) {
+                        const role = await channel.guild.roles.fetch(config.roleID);
+                        await channel.send(`${video.link} ${role.toString()}`);
+                    } else {
+                        await channel.send(video.link);
+                    }
                 }
             }
 
@@ -111,28 +104,15 @@ export class FeedCommand extends Command {
         if (!channel || channel.type !== 'text')
             throw new Error('Choose a text channel for feed updates.');
 
+        const feed = await this.rss.parseURL(options.url);
         const config: FeedConfiguration = {
-            type: null,
-
-            title: null,
-            link: null,
-
+            title: feed.title,
+            link: feed.link,
             url: options.url,
             roleID: options.role,
             channelID: options.channel,
-            lastUpdate: 0
+            lastUpdate: feed.items && feed.items.length > 0 ? new Date(feed.items[0].pubDate).getTime() : 0
         };
-
-        if (options.url.indexOf(YOUTUBE_URL) === 0) {
-            const feed = await this.rss.parseURL(options.url);
-            config.type = 'youtube';
-            config.title = feed.title;
-            config.link = feed.link;
-            if(feed.items)
-                config.lastUpdate = new Date(feed.items[0].pubDate).getTime();
-        } else {
-            throw new Error('Unknown feed type. Currently only youtube is supported.');
-        }
 
         const db = await FeedCommand.getDatabase(author.guild.id);
         const data = db.data || [];
@@ -151,7 +131,7 @@ export class FeedCommand extends Command {
         const data = db.data || [];
 
         const index = options.feed - 1;
-        if(index < 0 || index >= data.length) {
+        if (index < 0 || index >= data.length) {
             throw new Error(`Invalid feed configuration specified. Number of configurations: ${db.data.length}`);
         }
 
@@ -193,7 +173,6 @@ export class FeedCommand extends Command {
 }
 
 type FeedConfiguration = {
-    type: 'youtube',
     title: string,
     link: string,
     url: string,
