@@ -141,6 +141,7 @@ export class FeedCommand extends Command {
 
         return {
             dm: true,
+            log: Icons.ADD,
             description: `Now posting updates for **[${config.title}](${config.link})** in **${channel.name}**!`
         };
     }
@@ -159,6 +160,7 @@ export class FeedCommand extends Command {
 
         return {
             dm: true,
+            log: Icons.DELETE,
             description: `Feed configuration for **[${config.title}](${config.link})** deleted!`
         };
     }

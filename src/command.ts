@@ -1,6 +1,6 @@
 import {Client, GuildMember, MessageEmbedOptions, PermissionResolvable, TextChannel} from 'discord.js';
 import {ApplicationCommand} from './application-command';
-
+import {Icon} from './icons';
 
 export abstract class Command {
     interaction?: ApplicationCommand;
@@ -17,7 +17,7 @@ export abstract class Command {
     }
 }
 
-export type CommandResponse = (MessageEmbedOptions & {dm?: boolean} & {content?: string}) | void;
+export type CommandResponse = (MessageEmbedOptions & {dm?: boolean} & {log?: Icon} & {content?: string}) | void;
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CommandOptions = { [name: string]: any; }

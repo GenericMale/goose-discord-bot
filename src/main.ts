@@ -140,23 +140,34 @@ async function onInteraction(interaction: Interaction) {
 
         if (response) {
             if(response.dm === true) {
-                response.author = response.author || {
-                    iconURL: Icons.INFO.url,
-                    name: 'Information'
-                }
-                response.color = response.color || Icons.INFO.color;
-                response.footer = {
-                    iconURL: guild.iconURL(),
-                    text: `${guild.name} #${channel.name}`
-                };
-                return (await member.createDM()).send({embed: response});
+                const embed = Object.assign({
+                    author: response.author || {
+                        iconURL: Icons.INFO.url,
+                        name: 'Information'
+                    },
+                    color: Icons.INFO.color,
+                    footer: {
+                        iconURL: guild.iconURL(),
+                        text: `${guild.name} #${channel.name}`
+                    }
+                }, response);
+                await (await member.createDM()).send({embed});
             } else {
-                response.footer = {
-                    text: member.displayName,
-                    iconURL: member.user.displayAvatarURL()
-                };
-                response.color = response.color || member.guild.me.displayColor;
-                return sendFollowup(interaction, response);
+                const embed = Object.assign({
+                    footer: {
+                        text: member.displayName,
+                        iconURL: member.user.displayAvatarURL()
+                    },
+                    color: member.guild.me.displayColor
+                }, response);
+                await sendFollowup(interaction, embed);
+            }
+
+            if(response.log) {
+                const embed = Object.assign({
+                    color: response.log.color
+                }, response);
+                await LogCommand.logBotEvent(guild, member.user, embed);
             }
         }
     } catch (e) {

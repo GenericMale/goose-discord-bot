@@ -71,14 +71,14 @@ export class LogCommand extends Command {
             guild: member.guild, user: member.user,
             embed: () => ({
                 description: `**${member.toString()} Left**`,
-                color: Icons.ERROR.color
+                color: Icons.DELETE.color
             })
         }),
         guildBanAdd: (guild: Guild, user: User) => ({
             guild: guild, user: user,
             embed: () => ({
                 description: `**${user.toString()} Banned**`,
-                color: Icons.ERROR.color
+                color: Icons.DELETE.color
             })
         }),
         guildBanRemove: (guild: Guild, user: User) => ({
@@ -134,7 +134,7 @@ export class LogCommand extends Command {
             embed: () => ({
                 description: `**Message from ${message.member ? message.member.toString() : 'someone'} in ${message.channel.toString()} deleted**` +
                     (message.cleanContent ? `\n${message.cleanContent}` : ''),
-                color: Icons.ERROR.color
+                color: Icons.DELETE.color
             })
         }),
         messageDeleteBulk: (messages: Collection<Snowflake, Message>) => ({
@@ -211,6 +211,7 @@ export class LogCommand extends Command {
         await db.writeData(config);
         return {
             dm: true,
+            log: Icons.INFO,
             description: `Logging of **${Events[options.event]}** event **${options.enabled ? 'enabled' : 'disabled'}**.`
         };
     }
@@ -229,6 +230,7 @@ export class LogCommand extends Command {
         await db.writeData(config);
         return {
             dm: true,
+            log: Icons.INFO,
             description: `Audit log channel set to **#${channel.name}**.`
         };
     }

@@ -5,6 +5,7 @@ import {Database} from '../database';
 import fetch from 'node-fetch';
 import {URLSearchParams} from 'url';
 import * as log4js from 'log4js';
+import * as Icons from '../icons';
 
 const IMGUR_API_URL = 'https://api.imgur.com/3/image';
 
@@ -202,6 +203,7 @@ export class CustomCommand extends Command {
 
         return {
             dm: true,
+            log: Icons.ADD,
             description: `New guild command **/${options.name}** added!`
         };
     }
@@ -278,6 +280,7 @@ export class CustomCommand extends Command {
 
         return {
             dm: true,
+            log: Icons.ADD,
             description: `New guild command **/${options.name}** added!`
         };
     }
@@ -297,6 +300,7 @@ export class CustomCommand extends Command {
 
         return {
             dm: true,
+            log: Icons.DELETE,
             description: `Guild command **/${options.name}** removed!`
         };
     }

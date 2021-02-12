@@ -215,6 +215,7 @@ export class RoleCommand extends Command {
         }
         return {
             dm: true,
+            log: Icons.INFO,
             description: action === 'GIVE' ?
                 `**${role.name}** was given to **${member.displayName}** for **${expirationStr}**.` :
                 `**${role.name}** was removed from **${member.displayName}** for **${expirationStr}**.`
@@ -231,6 +232,7 @@ export class RoleCommand extends Command {
             const member = await author.guild.members.fetch(option.user);
             return {
                 dm: true,
+                log: Icons.INFO,
                 description: `Temporary role assignments cleared for user **${member ? member.displayName : option.user}**.`
             };
         } else {
@@ -238,6 +240,7 @@ export class RoleCommand extends Command {
             await db.writeData(data);
             return {
                 dm: true,
+                log: Icons.INFO,
                 description: `All Temporary role assignments cleared.`
             };
         }
