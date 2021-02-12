@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import {Client, GuildMember, PermissionResolvable, TextChannel} from 'discord.js';
 import * as Parser from 'rss-parser';
@@ -10,7 +10,7 @@ const CHECK_INTERVAL = 10 * 60 * 1000;
 
 export class FeedCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'feed',
         description: 'Automatically post feed updates.',
         options: [{

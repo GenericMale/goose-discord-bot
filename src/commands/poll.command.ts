@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import {GuildMember, TextChannel} from 'discord.js';
@@ -7,7 +7,7 @@ const EMOJIS = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'
 
 export class PollCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'poll',
         description: 'Create a simple poll',
         options: [

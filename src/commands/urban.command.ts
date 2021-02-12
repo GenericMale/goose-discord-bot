@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import fetch from 'node-fetch';
@@ -8,7 +8,7 @@ const API_URL = 'https://api.urbandictionary.com/v0/define?';
 
 export class UrbanCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'urban',
         description: 'Search on urbandictionary.com',
         options: [

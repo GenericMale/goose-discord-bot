@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import {
     Client,
@@ -18,7 +18,7 @@ import * as Icons from '../icons';
 
 export class LogCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'log',
         description: 'Configure audit log.',
         options: [{

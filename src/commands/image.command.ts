@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import {GuildMember, TextChannel} from 'discord.js';
@@ -18,7 +18,7 @@ const RESULT_LINK_SELECTOR = 'a.VFACy,a.kGQAp';
 
 export class ImageCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'image',
         description: 'Search Image on Google',
         options: [

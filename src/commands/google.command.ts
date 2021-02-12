@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import {GuildMember, TextChannel} from 'discord.js';
@@ -20,7 +20,7 @@ const DESCRIPTION_SELECTOR = 'div.s3v9rd';
 
 export class GoogleCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'google',
         description: 'Search on Google',
         options: [

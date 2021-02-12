@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import {Client, EmbedFieldData, GuildMember, PermissionResolvable} from 'discord.js';
@@ -22,7 +22,7 @@ export class RoleCommand extends Command {
         {name: '1 Year', value: 365 * 24 * 60}
     ];
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'role',
         description: 'Modify the roles of a user temporarily.',
         options: [{

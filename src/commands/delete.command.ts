@@ -1,10 +1,10 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import {GuildMember, PermissionResolvable, TextChannel} from 'discord.js';
 
 export class DeleteCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'delete',
         description: 'Delete a number of messages from the channel. Optionally filtered by a list of users or a text.',
         options: [

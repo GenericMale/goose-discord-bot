@@ -2,17 +2,18 @@ import {Command, CommandOptions, CommandResponse} from '../command';
 import * as Icons from '../icons';
 import * as log4js from 'log4js';
 import * as moment from 'moment';
-import {Client, GuildMember, WSEventType} from 'discord.js';
+import {Client, GuildMember, PermissionResolvable, WSEventType} from 'discord.js';
 import {ApplicationCommand} from '../application-command';
 
 const GITHUB_URL = 'https://github.com/GenericMale/goose-discord-bot';
 
 export class StatusCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'status',
         description: 'Get bot status'
     };
+    permission: PermissionResolvable = 'VIEW_CHANNEL';
 
     private log = log4js.getLogger(StatusCommand.name);
     private receivedMessages = 0;

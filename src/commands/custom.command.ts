@@ -24,7 +24,7 @@ const ROLE = '%role%';
  */
 export class CustomCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'custom',
         description: 'Manage guild scoped custom commands',
         options: [

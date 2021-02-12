@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType} from '../application-command';
+import {ApplicationCommand, ApplicationCommandOptionType} from '../application-command';
 import {Command, CommandOptions, CommandResponse} from '../command';
 import fetch from 'node-fetch';
 import * as sharp from 'sharp';
@@ -12,7 +12,7 @@ const MAX_SIZE = 300;
 
 export class BigCommand extends Command {
 
-    interaction = {
+    interaction: ApplicationCommand = {
         name: 'big',
         description: 'Print a big version of an emoji or a users avatar',
         options: [
