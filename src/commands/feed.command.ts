@@ -122,7 +122,7 @@ export class FeedCommand extends Command {
         return {
             dm: true,
             log: Icons.ADD,
-            description: `Now posting updates for **[${config.title}](${config.link})** in **${channel.name}**!`
+            description: `Now posting updates for **[${config.title}](${config.link})** in **${channel.toString()}**!`
         };
     }
 
@@ -153,7 +153,7 @@ export class FeedCommand extends Command {
         for (let i = 0; i < data.length; i++) {
             const {channelID, title, link, lastUpdate} = data[i];
             const channel = await author.client.channels.fetch(channelID) as TextChannel;
-            entries.push(`**${i + 1}.** **[${title}](${link})** in **#${channel.name}**. Last update **${moment(lastUpdate).fromNow()}**.`);
+            entries.push(`**${i + 1}.** **[${title}](${link})** in **${channel.toString()}**. Last update **${moment(lastUpdate).fromNow()}**.`);
         }
 
         return {

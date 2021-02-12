@@ -231,7 +231,7 @@ export class LogCommand extends Command {
         return {
             dm: true,
             log: Icons.INFO,
-            description: `Audit log channel set to **#${channel.name}**.`
+            description: `Audit log channel set to **${channel.toString()}**.`
         };
     }
 
@@ -257,7 +257,7 @@ export class LogCommand extends Command {
                 inline: true
             }, {
                 name: 'Channel',
-                value: (channel ? `#${channel.name}` : '*not set*'),
+                value: (channel ? `${channel.toString()}` : '*not set*'),
                 inline: true
             }]
         };
