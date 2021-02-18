@@ -140,7 +140,7 @@ export class LogCommand extends Command {
         messageDeleteBulk: (messages: Collection<Snowflake, Message>) => ({
             guild: messages.first().guild, user: null,
             embed: () => ({
-                description: `**${messages.size} messages in ${messages.first().channel.toString} deleted**`,
+                description: `**${messages.size} messages in ${messages.first().channel.toString()} deleted**`,
                 color: Icons.INFO.color
             })
         }),
