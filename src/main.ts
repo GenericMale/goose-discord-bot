@@ -148,7 +148,7 @@ async function onInteraction(interaction: Interaction) {
                     color: Icons.INFO.color,
                     footer: {
                         iconURL: guild.iconURL(),
-                        text: `${guild.name} #${channel.name}`
+                        text: `${guild.name} | #${channel.name}`
                     }
                 }, response);
                 await (await member.createDM()).send({embed});
@@ -193,7 +193,7 @@ async function onInteraction(interaction: Interaction) {
                 description: commandBlock,
                 footer: {
                     iconURL: guild.iconURL(),
-                    text: `${guild.name} #${channel.name}`
+                    text: `${guild.name} | #${channel.name}`
                 }
             }
         });
