@@ -214,7 +214,6 @@ export class RoleCommand extends Command {
             );
         }
         return {
-            dm: true,
             log: Icons.INFO,
             description: action === 'GIVE' ?
                 `**${role.name}** was given to **${member.displayName}** for **${expirationStr}**.` :
@@ -231,7 +230,6 @@ export class RoleCommand extends Command {
 
             const member = await author.guild.members.fetch(option.user);
             return {
-                dm: true,
                 log: Icons.INFO,
                 description: `Temporary role assignments cleared for user **${member ? member.displayName : option.user}**.`
             };
@@ -239,7 +237,6 @@ export class RoleCommand extends Command {
             data = option.user ? data.filter(d => d.memberID !== option.user) : [];
             await db.writeData(data);
             return {
-                dm: true,
                 log: Icons.INFO,
                 description: `All Temporary role assignments cleared.`
             };
@@ -263,7 +260,6 @@ export class RoleCommand extends Command {
         }
 
         return {
-            dm: true,
             author: {
                 iconURL: Icons.INFO.url,
                 name: 'Temporary Roles',

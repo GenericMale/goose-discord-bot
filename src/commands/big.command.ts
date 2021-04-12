@@ -58,10 +58,10 @@ export class BigCommand extends Command {
     }
 
     private async executeUser(author: GuildMember, userId: string): Promise<CommandResponse> {
-        const member = await author.guild.members.fetch(userId);
-        const avatar = member.user.displayAvatarURL().replace(/\?size=.*/, '');
+        const user = await author.client.users.fetch(userId);
+        const avatar = user.displayAvatarURL().replace(/\?size=.*/, '');
         return {
-            title: member.displayName,
+            title: user.username,
             image: {
                 url: avatar,
             }

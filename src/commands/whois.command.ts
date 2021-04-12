@@ -20,43 +20,43 @@ export class WhoisCommand extends Command {
     permission: PermissionResolvable = 'VIEW_CHANNEL';
 
     async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
-        const member = await author.guild.members.fetch(options.user);
-        if (!member || !member.user)
+        const user = await author.client.users.fetch(options.user);
+        const member = author.guild ? await author.guild.members.fetch(options.user) : undefined;
+        if (!user)
             throw new Error(`User ${options.user} not found!`);
 
         return {
-            dm: true,
             author: {
-                name: member.user.tag,
-                iconURL: member.user.displayAvatarURL(),
+                name: user.tag,
+                iconURL: user.displayAvatarURL(),
             },
             thumbnail: {
-                url: member.user.displayAvatarURL()
+                url: user.displayAvatarURL()
             },
             fields: [{
                 name: 'Joined Server',
-                value: moment(member.joinedAt).format('llll'),
+                value: member ? moment(member.joinedAt).format('llll') : '-',
                 inline: true
             }, {
                 name: 'Account Created',
-                value: moment(member.user.createdAt).format('llll'),
+                value: moment(user.createdAt).format('llll'),
                 inline: true
             }, {
                 name: 'Status',
-                value: member.presence.activities.length > 0 ? member.presence.activities.map(a => `${a.name}: ${a.state}`).join('\n') : '*None*'
+                value: user.presence.activities.length > 0 ? user.presence.activities.map(a => `${a.name}: ${a.state}`).join('\n') : '*None*'
             }, {
                 name: 'Roles',
-                value: member.roles.cache
+                value: member ? member.roles.cache
                     .filter(r => r.name !== '@everyone')
                     .sort((a, b) => b.position - a.position)
                     .map(r => r.name)
-                    .join(', ')
+                    .join(', ') : '-'
             }, {
                 name: 'Permissions',
-                value: member.permissionsIn(channel).toArray().map(p => this.toTitleCase(p)).join(', ')
+                value: member ? member.permissionsIn(channel).toArray().map(p => this.toTitleCase(p)).join(', ') : '-'
             }],
             footer: {
-                text: `User ID: ${member.user.id}`
+                text: `User ID: ${user.id}`
             }
         }
     }

@@ -90,6 +90,8 @@ export class FeedCommand extends Command {
     }
 
     async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
+        if(!author.guild) throw new Error(`Must be executed in a guild.`);
+
         if (options.add) {
             return this.executeAdd(options.add, author);
         } else if (options.remove) {
@@ -120,7 +122,6 @@ export class FeedCommand extends Command {
         await db.writeData(data);
 
         return {
-            dm: true,
             log: Icons.ADD,
             description: `Now posting updates for **[${config.title}](${config.link})** in **${channel.toString()}**!`
         };
@@ -139,7 +140,6 @@ export class FeedCommand extends Command {
         await db.writeData(data);
 
         return {
-            dm: true,
             log: Icons.DELETE,
             description: `Feed configuration for **[${config.title}](${config.link})** deleted!`
         };
@@ -157,7 +157,6 @@ export class FeedCommand extends Command {
         }
 
         return {
-            dm: true,
             author: {
                 iconURL: Icons.RSS.url,
                 name: 'Feed Update Configuration',

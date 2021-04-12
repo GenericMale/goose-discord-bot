@@ -15,7 +15,6 @@ export class StatusCommand extends Command {
     };
     permission: PermissionResolvable = 'VIEW_CHANNEL';
 
-    private log = log4js.getLogger(StatusCommand.name);
     private receivedMessages = 0;
     private sentMessages = 0;
 
@@ -31,9 +30,8 @@ export class StatusCommand extends Command {
 
     async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
         const globalCommands = await this.getGlobalCommands(author.client);
-        const guildCommands = await this.getGuildCommands(author.client, author.guild.id);
+        const guildCommands = author.guild ? await this.getGuildCommands(author.client, author.guild.id) : [];
         return {
-            dm: true,
             author: {
                 name: 'Bot Status',
                 iconURL: Icons.DATABASE.url
@@ -68,7 +66,7 @@ export class StatusCommand extends Command {
                 value: globalCommands.map(c => `\`/${c.name}\``).join(' ')
             }, {
                 name: '🏠  Guild Commands',
-                value: guildCommands.map(c => `\`/${c.name}\``).join(' ')
+                value: guildCommands.map(c => `\`/${c.name}\``).join(' ') || 'None'
             }],
         };
     }

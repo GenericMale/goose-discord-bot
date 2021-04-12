@@ -1,7 +1,16 @@
 import * as dotenv from 'dotenv';
 import * as log4js from 'log4js';
 
-import {Client, GuildMember, Message, MessageEmbedOptions, TextChannel, WebhookClient, WSEventType} from 'discord.js';
+import {
+    Client,
+    GuildMember,
+    Message,
+    MessageEmbedOptions,
+    TextChannel,
+    User,
+    WebhookClient,
+    WSEventType
+} from 'discord.js';
 
 import * as commandClasses from './commands';
 import {CustomCommand, LogCommand} from './commands';
@@ -55,12 +64,12 @@ async function onClientReady() {
             commands[command.interaction.name] = command;
 
             const i = orphanCommands.findIndex(c => c.name === command.interaction.name);
-            if(i === -1) {
+            if (i === -1) {
                 await createGlobalCommand(command.interaction);
                 log.info(`Command ${commandClass.name} created`);
             } else {
                 const oldCommand = orphanCommands.splice(i, 1)[0];
-                if(!commandsEquals(oldCommand, command.interaction)) {
+                if (!commandsEquals(oldCommand, command.interaction)) {
                     await createGlobalCommand(command.interaction);
                     log.info(`Command ${commandClass.name} updated`);
                 }
@@ -80,7 +89,7 @@ async function onClientReady() {
     log.info('All Commands initialized');
 
     const guilds = client.guilds.cache.array();
-    for(const guild of guilds) {
+    for (const guild of guilds) {
         const guildCommands = await getGuildCommands(guild.id);
         await LogCommand.logBotEvent(guild, null, {
             author: {
@@ -99,12 +108,12 @@ async function onClientReady() {
             footer: {
                 text: `User ID: ${client.user.id}`
             }
-        })
+        });
     }
 }
 
 async function onInteraction(interaction: Interaction) {
-    if(!interaction) {
+    if (!interaction) {
         return;
     }
 
@@ -112,90 +121,62 @@ async function onInteraction(interaction: Interaction) {
         log.info(`Ping Interaction received`);
         return sendResponse(interaction, InteractionResponseType.Pong);
     }
-    log.info(`Application Command /${interaction.data.name} `+
-        `received from ${interaction.member.user.username}#${interaction.member.user.discriminator} `+
+
+    const interactionUser = interaction.user || interaction.member.user;
+    log.info(`Application Command /${interaction.data.name} ` +
+        `received from ${interactionUser.username}#${interactionUser.discriminator} ` +
         `in ${interaction.guild_id}/${interaction.channel_id}`
     );
 
-    await sendResponse(interaction, InteractionResponseType.Acknowledge);
+    await sendResponse(interaction, InteractionResponseType.AcknowledgeWithSource);
 
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const channel = await client.channels.fetch(interaction.channel_id) as TextChannel;
-    const member = new GuildMember(client, interaction.member, guild);
+    const guild = interaction.guild_id ? await client.guilds.fetch(interaction.guild_id) : undefined;
+    const channel = interaction.channel_id ? await client.channels.fetch(interaction.channel_id) as TextChannel : undefined;
+    const user = interaction.user ? new User(client, interaction.user) : undefined;
+    const member = interaction.member ? new GuildMember(client, interaction.member, guild) : undefined;
     const options = parseInteractionDataOption(interaction.data.options);
-    const permissions = channel.permissionsFor(member);
+    const permissions = channel && member ? channel.permissionsFor(member) : undefined;
 
     const name = interaction.data.name;
     const command = commands[name];
     try {
         let response: CommandResponse;
         if (command) {
-            if (command.permission && !permissions.has(command.permission))
+            if (permissions && command.permission && !permissions.has(command.permission))
                 throw new Error('You don\'t have permission to execute this command.');
 
-            response = await command.execute(options, member, channel);
+            response = await command.execute(options, member || user, channel);
         } else if (await CustomCommand.has(name, member)) {
             response = await CustomCommand.execute(interaction.data.name, options, member, channel);
         }
 
-        if (response) {
-            if(response.dm === true) {
-                const embed = Object.assign({
-                    author: response.author || {
-                        iconURL: Icons.INFO.url,
-                        name: 'Information'
-                    },
-                    color: Icons.INFO.color,
-                    footer: {
-                        iconURL: guild.iconURL(),
-                        text: `${guild.name} | #${channel.name}`
-                    }
-                }, response);
-                await (await member.createDM()).send({embed});
-            } else {
-                const embed = Object.assign({
-                    footer: {
-                        text: member.displayName,
-                        iconURL: member.user.displayAvatarURL()
-                    },
-                    color: member.guild.me.displayColor
-                }, response);
-                await sendFollowup(interaction, embed);
-            }
+        await sendFollowup(interaction, response);
 
-            if(response.log) {
-                const embed = Object.assign({
-                    color: response.log.color
-                }, response);
-                await LogCommand.logBotEvent(guild, member.user, embed);
-            }
+        if (response.log) {
+            const embed = Object.assign({
+                color: response.log.color
+            }, response);
+            await LogCommand.logBotEvent(guild, user || member.user, embed);
         }
     } catch (e) {
         log.warn(`Command failed: ${e.message}`);
 
         const commandBlock = `\`\`\`/${interaction.data.name}${reconstructCommand(interaction.data.options)}\`\`\``;
-        await LogCommand.logBotEvent(guild, member.user, {
+        await LogCommand.logBotEvent(guild, user || member.user, {
             color: Icons.WARNING.color,
             fields: [{
                 name: 'Command Failed',
                 value: e.message + commandBlock
             }]
-        })
+        });
 
-        await (await member.createDM()).send({
-            embed: {
-                author: {
-                    iconURL: Icons.ERROR.url,
-                    name: 'Command Failed'
-                },
-                color: Icons.ERROR.color,
-                title: e.message,
-                description: commandBlock,
-                footer: {
-                    iconURL: guild.iconURL(),
-                    text: `${guild.name} | #${channel.name}`
-                }
-            }
+        await sendFollowup(interaction, {
+            author: {
+                iconURL: Icons.ERROR.url,
+                name: 'Command Failed'
+            },
+            color: Icons.ERROR.color,
+            title: e.message
         });
     }
 }
@@ -229,10 +210,8 @@ function reconstructCommand(options?: ApplicationCommandInteractionDataOption[])
 
 
 async function sendFollowup(interaction: Interaction, data: CommandResponse): Promise<Message> {
-    if(data && data.content) {
-        return new WebhookClient(client.user.id, interaction.token).send(data.content, {
-            embeds: [data]
-        });
+    if (data && data.content) {
+        return new WebhookClient(client.user.id, interaction.token).send(data.content);
     } else {
         return new WebhookClient(client.user.id, interaction.token).send({embeds: [data as MessageEmbedOptions]});
     }

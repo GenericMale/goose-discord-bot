@@ -27,6 +27,8 @@ export class DeleteCommand extends Command {
     permission: PermissionResolvable = 'MANAGE_MESSAGES';
 
     async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
+        if(channel.type !== 'text') throw new Error(`Can't delete messages in ${channel.type} channels.`);
+
         let messages = (await channel.messages.fetch()).array();
 
         if (options.user) {
@@ -37,11 +39,10 @@ export class DeleteCommand extends Command {
             messages = messages.filter(m => m.content.toLowerCase().indexOf(options.text) >= 0);
         }
 
-        messages = messages.slice(0, Math.max(1, options.number));
+        messages = messages.slice(1, Math.max(1, options.number) + 1); //skip first as this is the interaction message
         await channel.bulkDelete(messages);
 
         return {
-            dm: true,
             description: `${messages.length} Message(s) Deleted`
         };
     }

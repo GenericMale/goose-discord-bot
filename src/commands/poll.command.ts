@@ -59,6 +59,8 @@ export class PollCommand extends Command {
     };
 
     async execute(options: CommandOptions, author: GuildMember, channel: TextChannel): Promise<CommandResponse> {
+        if(channel.type !== 'text') throw new Error(`Can't create polls in ${channel.type} channels.`);
+
         const answers = [];
         const emojis = [];
 
@@ -86,5 +88,8 @@ export class PollCommand extends Command {
             }
         });
         await Promise.all(emojis.map(emoji => message.react(emoji)));
+        return {
+            description: `Poll created`
+        };
     }
 }

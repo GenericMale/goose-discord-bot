@@ -123,8 +123,8 @@ export class LogCommand extends Command {
                 description: `**[Message](https://discordapp.com/channels/${newMessage.guild.id}/${newMessage.channel.id}/${newMessage.id}) ` +
                     `from ${newMessage.member.toString()} in ${newMessage.channel.toString()} edited**`,
                 fields: [
-                    {name: 'Before', value: oldMessage.cleanContent},
-                    {name: 'After', value: newMessage.cleanContent}
+                    {name: 'Before', value: oldMessage.cleanContent || 'None'},
+                    {name: 'After', value: newMessage.cleanContent || 'None'}
                 ],
                 color: Icons.INFO.color
             } : null)
@@ -210,7 +210,6 @@ export class LogCommand extends Command {
         const db = await LogCommand.getDatabase(author.guild.id);
         await db.writeData(config);
         return {
-            dm: true,
             log: Icons.INFO,
             description: `Logging of **${Events[options.event]}** event **${options.enabled ? 'enabled' : 'disabled'}**.`
         };
@@ -229,7 +228,6 @@ export class LogCommand extends Command {
         const db = await LogCommand.getDatabase(author.guild.id);
         await db.writeData(config);
         return {
-            dm: true,
             log: Icons.INFO,
             description: `Audit log channel set to **${channel.toString()}**.`
         };
@@ -245,7 +243,6 @@ export class LogCommand extends Command {
             channel = await author.client.channels.fetch(config.channel) as TextChannel;
 
         return {
-            dm: true,
             author: {
                 iconURL: Icons.COGS.url,
                 name: 'Audit Log Configuration',

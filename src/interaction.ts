@@ -2,9 +2,10 @@ export interface Interaction {
     id: string;
     type: InteractionType;
     data?: ApplicationCommandInteractionData;
-    guild_id: string;
-    channel_id: string;
-    member: InteractionGuildMember;
+    guild_id?: string;
+    channel_id?: string;
+    member?: InteractionGuildMember;
+    user?: InteractionUser;
     token: string;
     version: number;
 }

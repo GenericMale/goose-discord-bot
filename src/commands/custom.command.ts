@@ -139,6 +139,8 @@ export class CustomCommand extends Command {
      * Execute the command administration.
      */
     async execute(options: CommandOptions, author: GuildMember): Promise<CommandResponse> {
+        if(!author.guild) throw new Error(`Must be executed in a guild.`);
+
         if (options.message) {
             return this.message(options.message as CommandOptions, author);
         } else if (options.rolemenu) {
@@ -202,7 +204,6 @@ export class CustomCommand extends Command {
         await db.writeData(data);
 
         return {
-            dm: true,
             log: Icons.ADD,
             description: `New guild command **/${options.name}** added!`
         };
@@ -279,7 +280,6 @@ export class CustomCommand extends Command {
         await db.writeData(data);
 
         return {
-            dm: true,
             log: Icons.ADD,
             description: `New guild command **/${options.name}** added!`
         };
@@ -299,7 +299,6 @@ export class CustomCommand extends Command {
         await this.deleteGuildCommand(author.client, author.guild.id, command.id);
 
         return {
-            dm: true,
             log: Icons.DELETE,
             description: `Guild command **/${options.name}** removed!`
         };
@@ -385,7 +384,6 @@ export class CustomCommand extends Command {
                 //if user already has the role -> remove it
                 await author.roles.remove(roleID);
                 return {
-                    dm: true,
                     description: `You have lost the **${role.name}** role.`
                 };
             } else {
@@ -402,7 +400,6 @@ export class CustomCommand extends Command {
             await author.roles.add(roleID);
             role = author.guild.roles.cache.find(r => r.id === roleID);
             return {
-                dm: true,
                 description: `You now have the **${role.name}** role.`
             };
         }
