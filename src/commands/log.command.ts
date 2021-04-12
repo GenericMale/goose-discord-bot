@@ -134,6 +134,7 @@ export class LogCommand extends Command {
             embed: () => ({
                 description: `**Message from ${message.member ? message.member.toString() : 'someone'} in ${message.channel.toString()} deleted**` +
                     (message.cleanContent ? `\n${message.cleanContent}` : ''),
+                image: message.attachments.size > 0 ? message.attachments.first() : undefined,
                 color: Icons.DELETE.color
             })
         }),
