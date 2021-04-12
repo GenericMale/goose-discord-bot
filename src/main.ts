@@ -1,16 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as log4js from 'log4js';
 
-import {
-    Client,
-    GuildMember,
-    Message,
-    MessageEmbedOptions,
-    TextChannel,
-    User,
-    WebhookClient,
-    WSEventType
-} from 'discord.js';
+import {Client, GuildMember, MessageEmbed, TextChannel, User, WSEventType} from 'discord.js';
 
 import * as commandClasses from './commands';
 import {CustomCommand, LogCommand} from './commands';
@@ -119,7 +110,7 @@ async function onInteraction(interaction: Interaction) {
 
     if (interaction.type !== InteractionType.ApplicationCommand) {
         log.info(`Ping Interaction received`);
-        return sendResponse(interaction, InteractionResponseType.Pong);
+        return sendResponse(interaction, InteractionResponseType.Pong, null);
     }
 
     const interactionUser = interaction.user || interaction.member.user;
@@ -127,8 +118,6 @@ async function onInteraction(interaction: Interaction) {
         `received from ${interactionUser.username}#${interactionUser.discriminator} ` +
         `in ${interaction.guild_id}/${interaction.channel_id}`
     );
-
-    await sendResponse(interaction, InteractionResponseType.AcknowledgeWithSource);
 
     const guild = interaction.guild_id ? await client.guilds.fetch(interaction.guild_id) : undefined;
     const channel = interaction.channel_id ? await client.channels.fetch(interaction.channel_id) as TextChannel : undefined;
@@ -150,7 +139,7 @@ async function onInteraction(interaction: Interaction) {
             response = await CustomCommand.execute(interaction.data.name, options, member, channel);
         }
 
-        await sendFollowup(interaction, response);
+        await sendResponse(interaction, InteractionResponseType.ChannelMessageWithSource, response);
 
         if (response.log) {
             const embed = Object.assign({
@@ -170,7 +159,7 @@ async function onInteraction(interaction: Interaction) {
             }]
         });
 
-        await sendFollowup(interaction, {
+        await sendResponse(interaction, InteractionResponseType.ChannelMessageWithSource, {
             author: {
                 iconURL: Icons.ERROR.url,
                 name: 'Command Failed'
@@ -208,15 +197,6 @@ function reconstructCommand(options?: ApplicationCommandInteractionDataOption[])
     return command;
 }
 
-
-async function sendFollowup(interaction: Interaction, data: CommandResponse): Promise<Message> {
-    if (data && data.content) {
-        return new WebhookClient(client.user.id, interaction.token).send(data.content);
-    } else {
-        return new WebhookClient(client.user.id, interaction.token).send({embeds: [data as MessageEmbedOptions]});
-    }
-}
-
 function commandsEquals(a: ApplicationCommand, b: ApplicationCommand) {
     const compareFields = ['name', 'description', 'options', 'type', 'required', 'choices', 'value'];
     return JSON.stringify(a, compareFields) === JSON.stringify(b, compareFields);
@@ -246,7 +226,16 @@ async function deleteGlobalCommand(id: string): Promise<Buffer> {
     return (client as any).api.applications(client.user.id).commands(id).delete();
 }
 
-async function sendResponse(interaction: Interaction, type: InteractionResponseType): Promise<Buffer> {
+async function sendResponse(interaction: Interaction, type: InteractionResponseType, data: CommandResponse): Promise<Buffer> {
+    const embed = new MessageEmbed(data);
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (client as any).api.interactions(interaction.id, interaction.token).callback.post({data: {type}});
+    return (client as any).api.interactions(interaction.id, interaction.token).callback.post({
+        data: {
+            type,
+            data: {
+                content: data.content,
+                embeds: data.content && Object.keys(data).length === 1 ? undefined : [embed]
+            }
+        }
+    });
 }
